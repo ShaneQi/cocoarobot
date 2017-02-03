@@ -27,10 +27,10 @@ bot.run(with: {
 		case .BOT_COMMAND:
 			guard var text = message.text else { break }
 			let command = text.subed(fromIndex: entity.offset, length: entity.length)
-			switch command.uppercased() {
-			case "/ABOUT":
+			switch command.lowercased() {
+			case "/about", "/about@cocoarobot":
 				bot.send(
-					message: "Cocoa Robot powered by [Swift 3.1](https://github.com/apple/swift), [Perfect](https://github.com/PerfectlySoft/Perfect) and [ZEGBot](https://github.com/ShaneQi/ZEGBot)，maintained by @ShaneQi. Submitting issues and pull requests on >> [GitHub](https://github.com/ShaneQi/cocoarobot) <<.",
+					message: "Cocoa Robot is a pure Swift project, powered by [Perfect](https://github.com/PerfectlySoft/Perfect) and [ZEGBot](https://github.com/ShaneQi/ZEGBot), maintained by @ShaneQi. Submitting issues and pull requests on >> [GitHub](https://github.com/ShaneQi/cocoarobot) <<.",
 					to: message,
 					parseMode: .MARKDOWN,
 					disableWebPagePreview: true)
