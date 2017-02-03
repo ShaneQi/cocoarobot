@@ -9,11 +9,13 @@
 import ZEGBot
 
 let bot = ZEGBot(token: token)
+let db = try! Database()
 
 bot.run(with: {
 	update, bot in
 	
 	guard let message = update.message else { return }
+	
 	if let newChatMemeber = message.new_chat_member {
 		var text = "Welcome to iOS/macOS/watchOS/tvOS developers group."
 		if let username = newChatMemeber.username {
@@ -34,6 +36,13 @@ bot.run(with: {
 					to: message,
 					parseMode: .MARKDOWN,
 					disableWebPagePreview: true)
+			case "/crash", "/crash@cocoarobot":
+				CrashCounter.instance.count += 1
+				let count = CrashCounter.instance.count
+				bot.send(
+					message: "Xcode has crashed *\(count)* times so far today.",
+					to: message,
+					parseMode: .MARKDOWN)
 			default:
 				break
 			}
