@@ -40,7 +40,7 @@ bot.run(with: {
 				CrashCounter.instance.count += 1
 				let count = CrashCounter.instance.count
 				bot.send(
-					message: "Xcode has crashed *\(count)* times so far today.",
+					message: "Xcode has crashed *\(count)* \("time".pluralize(count: count)) so far today.",
 					to: message,
 					parseMode: .MARKDOWN)
 			default:
