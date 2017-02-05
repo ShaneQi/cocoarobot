@@ -165,7 +165,7 @@ public class Pluralize {
     }
 
     private class func regexReplace(input: String, pattern: String, template: String) -> String {
-        let regex = try! NSRegularExpression(pattern: pattern, options: .caseInsensitive)
+        let regex = try! RegularExpression(pattern: pattern, options: .caseInsensitive)
         let range = NSRange(location: 0, length: input.characters.count)
         let output = regex.stringByReplacingMatches(in: input, options: [], range: range, withTemplate: template)
         return output
