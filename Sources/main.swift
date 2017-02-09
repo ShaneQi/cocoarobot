@@ -11,7 +11,10 @@ import SQLite
 import Foundation
 
 let bot = ZEGBot(token: token)
-let db = try! SQLite(in: dbPath, managing: [CrashCounter.self])
+let db = try! SQLite(in: dbPath,
+                     managing: [
+						CrashCounter.self,
+						Product.self])
 var crashCounter = (try! CrashCounter.get(primaryKeyValue: Date().toString(withFormat: CrashCounter.dateFormat), from: db)) ?? CrashCounter(count: 0, date: Date())
 
 bot.run(with: {
@@ -46,6 +49,17 @@ bot.run(with: {
 				bot.send(
 					message: "Xcode has crashed *\(count)* \("time".pluralize(count: count)) so far today.",
 					to: message,
+					parseMode: .MARKDOWN)
+			case "/apps", "/apps@cocoarobot":
+				guard let products = try? Product.getAll(from: db) else { break }
+				var productsDictionary = products.categorise({ $0.developer })
+				var messageText = productsDictionary.map() { developer, products in
+					products.reduce(developer.usernameWrapped + "\n" ) { return $0 + " \($1.title) [[LINK](\($1.link))]\n" }
+					}.joined(separator: "\n")
+				if messageText == "" { messageText = "❌ No App Found" }
+				bot.send(
+					message: messageText,
+					to: message.chat,
 					parseMode: .MARKDOWN)
 			default:
 				break
