@@ -60,7 +60,8 @@ bot.run(with: {
 				bot.send(
 					message: messageText,
 					to: message.chat,
-					parseMode: .MARKDOWN)
+					parseMode: .MARKDOWN,
+					disableWebPagePreview: true)
 			default:
 				break
 			}
