@@ -7,9 +7,12 @@
 //
 
 import ZEGBot
+import SQLite
+import Foundation
 
 let bot = ZEGBot(token: token)
-let db = try! Database()
+let db = try! SQLite(in: dbPath, managing: [CrashCounter.self])
+var crashCounter = (try! CrashCounter.get(primaryKeyValue: Date().toString(withFormat: CrashCounter.dateFormat), from: db)) ?? CrashCounter(count: 0, date: Date())
 
 bot.run(with: {
 	update, bot in
@@ -37,8 +40,9 @@ bot.run(with: {
 					parseMode: .MARKDOWN,
 					disableWebPagePreview: true)
 			case "/crash", "/crash@cocoarobot":
-				CrashCounter.instance.count += 1
-				let count = CrashCounter.instance.count
+				crashCounter.increase()
+				try? crashCounter.replace(into: db)
+				let count = crashCounter.count
 				bot.send(
 					message: "Xcode has crashed *\(count)* \("time".pluralize(count: count)) so far today.",
 					to: message,
