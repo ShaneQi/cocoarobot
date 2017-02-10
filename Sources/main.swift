@@ -22,6 +22,11 @@ bot.run(with: {
 	
 	guard let message = update.message else { return }
 	
+	guard (message.chat.type == .GROUP || message.chat.username?.lowercased() == "shaneqi") else {
+		bot.send(message: "❌ Services only available in group.", to: message.chat)
+		return
+	}
+	
 	if let newChatMemeber = message.new_chat_member {
 		var text = "Welcome to iOS/macOS/watchOS/tvOS developers group."
 		if let username = newChatMemeber.username {
