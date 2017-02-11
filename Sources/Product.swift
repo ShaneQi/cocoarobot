@@ -15,6 +15,14 @@ struct Product {
 	var title: String
 	var developer: String
 	var link: String
+  var platform: Platform
+
+  enum Platform: String {
+    case iOS      = "0"
+    case macOS    = "1"  
+    case tvOS     = "2"
+    case watchOS  = "3"
+  }
 	
 }
 
@@ -29,7 +37,8 @@ extension Product: DatabaseManaged, Gettable {
 			products.append(Product(
 				title: statement.columnText(position: 0),
 				developer: statement.columnText(position: 1),
-				link: statement.columnText(position: 2)
+				link: statement.columnText(position: 2),
+        platform: Platform(rawValue: statement.columnText(position: 3)) ?? .iOS
 			))
 		}
 		return products
