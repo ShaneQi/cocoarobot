@@ -59,7 +59,7 @@ bot.run(with: {
 				guard let products = try? Product.getAll(from: db) else { break }
 				var productsDictionary = products.categorise({ $0.developer })
 				var messageText = productsDictionary.map() { developer, products in
-					products.reduce(developer.usernameWrapped + "\n" ) { return $0 + " \($1.title) [[LINK](\($1.link))]\n" }
+					products.reduce("👤 " + developer.usernameWrapped + "\n" ) { return $0 + "\($1)\n" }
 					}.joined(separator: "\n")
 				if messageText == "" { messageText = "❌ No App Found" }
 				bot.send(
