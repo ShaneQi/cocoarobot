@@ -72,7 +72,8 @@ bot.run(with: {
 					message: messageText,
 					to: message.chat,
 					parseMode: .MARKDOWN,
-					disableWebPagePreview: true)
+					disableWebPagePreview: true,
+					disableNotification: true)
 			default:
 				break
 			}
