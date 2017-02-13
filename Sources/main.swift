@@ -28,11 +28,17 @@ bot.run(with: {
 	}
 	
 	if let newChatMemeber = message.new_chat_member {
-		var text = "Welcome to iOS/macOS/watchOS/tvOS developers group."
+		var text = [welcome + "\n",
+		            about + "\n",
+		            commandList
+			].joined(separator: "\n")
 		if let username = newChatMemeber.username {
 			text = [username.usernameWrapped,text].joined(separator: " ")
 		}
-		bot.send(message: text, to: message.chat)
+		bot.send(message: text,
+		         to: message.chat,
+		         parseMode: .MARKDOWN,
+		         disableWebPagePreview: true)
 	}
 	
 	message.entities?.forEach({ entity in
@@ -43,7 +49,7 @@ bot.run(with: {
 			switch command.lowercased() {
 			case "/about", "/about@cocoarobot":
 				bot.send(
-					message: "Cocoa Robot is a pure Swift project, powered by [Perfect](https://github.com/PerfectlySoft/Perfect) and [ZEGBot](https://github.com/ShaneQi/ZEGBot), maintained by @ShaneQi. Submitting issues and pull requests on >> [GitHub](https://github.com/ShaneQi/cocoarobot) <<.",
+					message: about,
 					to: message,
 					parseMode: .MARKDOWN,
 					disableWebPagePreview: true)
@@ -52,7 +58,7 @@ bot.run(with: {
 				try? crashCounter.replace(into: db)
 				let count = crashCounter.count
 				bot.send(
-					message: "Xcode has crashed *\(count)* \("time".pluralize(count: count)) so far today.",
+					message: "Xcode 今日已崩溃 *\(count)* 次。",
 					to: message,
 					parseMode: .MARKDOWN)
 			case "/apps", "/apps@cocoarobot":
