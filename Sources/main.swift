@@ -22,7 +22,7 @@ bot.run(with: {
 	
 	guard let message = update.message else { return }
 	
-	guard (message.chat.type == .GROUP || message.chat.username?.lowercased() == "shaneqi") else {
+	guard (message.chat.type == .SUPERGROUP || message.chat.username?.lowercased() == "shaneqi") else {
 		bot.send(message: "❌ Services only available in group.", to: message.chat)
 		return
 	}
