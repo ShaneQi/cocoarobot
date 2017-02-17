@@ -73,6 +73,15 @@ bot.run(with: {
 					to: message.chat,
 					parseMode: .MARKDOWN,
 					disableWebPagePreview: true)
+			case "/wwdc", "/wwdc@cocoarobot":
+				let fifthOfJune = Date(timeIntervalSince1970: 1496638800)
+				let interval = fifthOfJune.timeIntervalSince(Date())
+				var days = Int(ceil(interval / 60 / 60 / 24))
+				if days < 0 { days = 0 }
+				bot.send(
+					message: "[WWDC17](https://developer.apple.com/wwdc/) 将于 June 5th 开幕，距离现在还有 *\(days)* 天。",
+					to: message.chat,
+					parseMode: .MARKDOWN)
 			default:
 				break
 			}
