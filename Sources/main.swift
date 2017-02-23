@@ -19,7 +19,7 @@ var crashCounter = (try! CrashCounter.get(primaryKeyValue: Date().toString(withF
 
 bot.run(with: {
 	update, bot in
-	
+
 	guard let message = update.message else { return }
 	
 	guard (message.chat.type == .SUPERGROUP || message.chat.username?.lowercased() == "shaneqi") else {
@@ -82,6 +82,37 @@ bot.run(with: {
 					message: "[WWDC17](https://developer.apple.com/wwdc/) 将于 June 5th 开幕，距离现在还有 *\(days)* 天。",
 					to: message.chat,
 					parseMode: .MARKDOWN)
+			case "/addapp", "/addapp@cocoarobot":
+				guard (message.chat.type == .SUPERGROUP || message.chat.username?.lowercased() == "shaneqi") else { return }
+				var args = Arguements(string: text).makeIterator()
+				_ = args.next()
+				guard let title = args.next(),
+					let developer = args.next(),
+					let link = args.next(),
+					let platform = args.next() else { return }
+				let product = Product(title: title, developer: developer, link: link, platform: Product.Platform(rawValue: platform) ?? .iOS)
+				do { 
+					try product.replace(into: db) 
+					bot.send(
+						message: "\(product)",
+						to: message,
+						parseMode: .MARKDOWN,
+						disableWebPagePreview: true)
+				} catch {}
+			case "/rmapp", "/rmapp@cocoarobot":
+				guard (message.chat.type == .SUPERGROUP || message.chat.username?.lowercased() == "shaneqi") else { return }
+				var args = Arguements(string: text).makeIterator()
+				_ = args.next()
+				guard let column = args.next(),
+					let value = args.next() else { return }
+				do { 
+					try Product.remove(from: db, where: column, equals: value) 
+					bot.send(
+						message: "✅ Executed.",
+						to: message,
+						parseMode: .MARKDOWN,
+						disableWebPagePreview: true)
+				} catch {}
 			default:
 				break
 			}

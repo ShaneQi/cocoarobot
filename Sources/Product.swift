@@ -42,7 +42,7 @@ struct Product: CustomStringConvertible {
 	
 }
 
-extension Product: DatabaseManaged, Gettable {
+extension Product: DatabaseManaged, Gettable, Settable, Removable {
 	
 	static var tableCreatingStatement: String = "CREATE TABLE IF NOT EXISTS `products` (`title` TEXT, `developer` TEXT, `link` TEXT);"
 	
@@ -63,5 +63,29 @@ extension Product: DatabaseManaged, Gettable {
 	static func get(primaryKeyValue: String, from database: SQLite) throws -> Product? {
 		fatalError("Not implemented.")
 	}
-	
+
+	func replace(into database: SQLite) throws {
+		try database.execute(
+			statement: "REPLACE INTO products VALUES (:1, :2, :3, :4);",
+			doBindings: { statement in
+				try statement.bind(position: 1, title)
+				try statement.bind(position: 2, developer)
+				try statement.bind(position: 3, link)
+				try statement.bind(position: 4, platform.rawValue)
+			})
+	}
+
+	static func remove(from database: SQLite, where column: String, equals value: String) throws {
+		switch column {
+		case "title":
+			try database.execute(
+				statement: "DELETE FROM products WHERE title = :1;",
+				doBindings: { statement in
+					try statement.bind(position: 1, value)
+				})
+		default:
+			throw DBError()
+		}
+	}
+
 }

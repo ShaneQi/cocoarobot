@@ -33,8 +33,17 @@ protocol Settable {
 	
 }
 
+protocol Removable {
+
+	/// DO NOT include column inside a string literal!
+	static func remove(from database: SQLite, where column: String, equals value: String) throws
+
+}
+
 protocol DatabaseManaged {
 	
 	static var tableCreatingStatement: String { get }
 	
 }
+
+struct DBError: Error {}
