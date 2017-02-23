@@ -38,7 +38,7 @@ struct Product: CustomStringConvertible {
 		
 	}
 	
-	var description: String { return "\(platform) \(title) [[LINK](\(link))]" }
+	var description: String { return "\(platform) \(title) ([LINK](\(link)))" }
 	
 }
 

@@ -17,7 +17,10 @@ struct CrashCounter {
 	var date: Date
 	
 	mutating func increase() {
-		if !Calendar.current.isDate(date, inSameDayAs: Date()) { count = 1 }
+		if !Calendar.current.isDate(date, inSameDayAs: Date()) { 
+			count = 1
+			date = Date()
+		}
 		else { count += 1 }
 	}
 	
