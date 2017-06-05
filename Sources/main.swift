@@ -83,7 +83,7 @@ bot.run(with: {
 					to: message.chat,
 					parseMode: .MARKDOWN)
 			case "/addapp", "/addapp@cocoarobot":
-				guard (message.chat.type == .SUPERGROUP || message.chat.username?.lowercased() == "shaneqi") else { return }
+				guard message.from?.username?.lowercased() == "shaneqi" else { return }
 				var args = Arguements(string: text).makeIterator()
 				_ = args.next()
 				guard let title = args.next(),
@@ -100,7 +100,7 @@ bot.run(with: {
 						disableWebPagePreview: true)
 				} catch {}
 			case "/rmapp", "/rmapp@cocoarobot":
-				guard (message.chat.type == .SUPERGROUP || message.chat.username?.lowercased() == "shaneqi") else { return }
+				guard message.from?.username?.lowercased() == "shaneqi" else { return }
 				var args = Arguements(string: text).makeIterator()
 				_ = args.next()
 				guard let column = args.next(),
