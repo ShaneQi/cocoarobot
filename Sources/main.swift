@@ -61,25 +61,31 @@ bot.run(with: {
 					message: "Xcode 今日已崩溃 *\(count)* 次。",
 					to: message,
 					parseMode: .MARKDOWN)
-			case "/apps", "/apps@cocoarobot":
-				guard let products = try? Product.getAll(from: db) else { break }
-				var productsDictionary = products.categorise({ $0.developer })
-				var messageText = productsDictionary.map() { developer, products in
-					products.reduce("👤 " + developer + "\n" ) { return $0 + "\($1)\n" }
-					}.joined(separator: "\n")
-				if messageText == "" { messageText = "❌ No App Found" }
-				bot.send(
-					message: messageText,
-					to: message.chat,
-					parseMode: .MARKDOWN,
-					disableWebPagePreview: true)
+//			case "/apps", "/apps@cocoarobot":
+//				guard let products = try? Product.getAll(from: db) else { break }
+//				var productsDictionary = products.categorise({ $0.developer })
+//				var messageText = productsDictionary.map() { developer, products in
+//					products.reduce("👤 " + developer + "\n" ) { return $0 + "\($1)\n" }
+//					}.joined(separator: "\n")
+//				if messageText == "" { messageText = "❌ No App Found" }
+//				bot.send(
+//					message: messageText,
+//					to: message.chat,
+//					parseMode: .MARKDOWN,
+//					disableWebPagePreview: true)
 			case "/wwdc", "/wwdc@cocoarobot":
-				let fifthOfJune = Date(timeIntervalSince1970: 1496638800)
-				let interval = fifthOfJune.timeIntervalSince(Date())
-				var days = Int(ceil(interval / 60 / 60 / 24))
-				if days < 0 { days = 0 }
+				let fifthOfJune = Date(timeIntervalSince1970: 1496682000)
+				let interval = Int(fifthOfJune.timeIntervalSince(Date()))
+				var hours = interval / 60 / 60
+				var minute = interval / 60 % 60
+				var readableHours: String?
+				var readableMinutes: String?
+				if hours > 0 { readableHours = "*\(hours)* 小时" }
+				if minute > 0 { readableMinutes = "*\(minute)* 分钟" }
+				let readableInterval = [readableHours, readableMinutes].flatMap({ $0 }).joined(separator: " ")
+				if readableInterval == "" { break }
 				bot.send(
-					message: "[WWDC17](https://developer.apple.com/wwdc/) 将于 June 5th 开幕，距离现在还有 *\(days)* 天。",
+					message: "[WWDC17](https://developer.apple.com/wwdc/) 将于 June 5th 12:00 PM CDT 开幕，距离现在还有 \(readableInterval)。",
 					to: message.chat,
 					parseMode: .MARKDOWN)
 			case "/addapp", "/addapp@cocoarobot":
