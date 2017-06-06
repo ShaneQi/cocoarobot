@@ -14,7 +14,7 @@ let bot = ZEGBot(token: token)
 let db = try! SQLite(in: dbPath,
                      managing: [
 						CrashCounter.self,
-						Product.self])
+						Session.self])
 var crashCounter = (try! CrashCounter.get(primaryKeyValue: Date().toString(withFormat: CrashCounter.dateFormat), from: db)) ?? CrashCounter(count: 0, date: Date())
 
 bot.run(with: {
@@ -61,63 +61,42 @@ bot.run(with: {
 					message: "Xcode 今日已崩溃 *\(count)* 次。",
 					to: message,
 					parseMode: .MARKDOWN)
-//			case "/apps", "/apps@cocoarobot":
-//				guard let products = try? Product.getAll(from: db) else { break }
-//				var productsDictionary = products.categorise({ $0.developer })
-//				var messageText = productsDictionary.map() { developer, products in
-//					products.reduce("👤 " + developer + "\n" ) { return $0 + "\($1)\n" }
-//					}.joined(separator: "\n")
-//				if messageText == "" { messageText = "❌ No App Found" }
-//				bot.send(
-//					message: messageText,
-//					to: message.chat,
-//					parseMode: .MARKDOWN,
-//					disableWebPagePreview: true)
 			case "/wwdc", "/wwdc@cocoarobot":
-				let fifthOfJune = Date(timeIntervalSince1970: 1496682000)
-				let interval = Int(fifthOfJune.timeIntervalSince(Date()))
-				var hours = interval / 60 / 60
-				var minute = interval / 60 % 60
-				var readableHours: String?
-				var readableMinutes: String?
-				if hours > 0 { readableHours = "*\(hours)* 小时" }
-				if minute > 0 { readableMinutes = "*\(minute)* 分钟" }
-				let readableInterval = [readableHours, readableMinutes].flatMap({ $0 }).joined(separator: " ")
-				if readableInterval == "" { break }
+				guard var sessions = try? Session.getAll(from: db) else { break }
+				sessions = Array(sessions.suffix(10)).reversed()
+				var messageText = sessions.map({ return "\($0)" }).joined(separator: "\n")
+				if messageText == "" { messageText = "❌ No Session Found" }
 				bot.send(
-					message: "[WWDC17](https://developer.apple.com/wwdc/) 将于 June 5th 12:00 PM CDT 开幕，距离现在还有 \(readableInterval)。",
+					message: messageText,
 					to: message.chat,
-					parseMode: .MARKDOWN)
-			case "/addapp", "/addapp@cocoarobot":
+					parseMode: .MARKDOWN,
+					disableWebPagePreview: true)
+			case "/addss", "/addss@cocoarobot":
 				guard message.from?.username?.lowercased() == "shaneqi" else { return }
 				var args = Arguements(string: text).makeIterator()
 				_ = args.next()
 				guard let title = args.next(),
-					let developer = args.next(),
-					let link = args.next(),
-					let platform = args.next() else { return }
-				let product = Product(title: title, developer: developer, link: link, platform: Product.Platform(rawValue: platform) ?? .iOS)
+					let url = args.next() else { return }
+				let session = Session(title: title, url: url)
 				do { 
-					try product.replace(into: db) 
+					try session.replace(into: db)
 					bot.send(
-						message: "\(product)",
+						message: "✅ \(session)",
 						to: message,
-						parseMode: .MARKDOWN,
-						disableWebPagePreview: true)
+						parseMode: .MARKDOWN)
 				} catch {}
-			case "/rmapp", "/rmapp@cocoarobot":
+			case "/rmss", "/rmss@cocoarobot":
 				guard message.from?.username?.lowercased() == "shaneqi" else { return }
 				var args = Arguements(string: text).makeIterator()
 				_ = args.next()
 				guard let column = args.next(),
 					let value = args.next() else { return }
 				do { 
-					try Product.remove(from: db, where: column, equals: value) 
+					try Session.remove(from: db, where: column, equals: value)
 					bot.send(
 						message: "✅ Executed.",
 						to: message,
-						parseMode: .MARKDOWN,
-						disableWebPagePreview: true)
+						parseMode: .MARKDOWN)
 				} catch {}
 			default:
 				break
