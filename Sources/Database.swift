@@ -36,7 +36,7 @@ protocol Settable {
 protocol Removable {
 
 	/// DO NOT include column inside a string literal!
-	static func remove(from database: SQLite, where column: String, equals value: String) throws
+	static func remove(from database: SQLite, where pairs: [(String, String)]) throws
 
 }
 

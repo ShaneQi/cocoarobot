@@ -65,7 +65,11 @@ bot.run(with: {
 				guard var sessions = try? Session.getAll(from: db) else { break }
 				sessions = Array(sessions.suffix(10)).reversed()
 				var messageText = sessions.map({ return "\($0)" }).joined(separator: "\n")
-				if messageText == "" { messageText = "❌ No Session Found" }
+				if messageText == "" {
+					messageText = "❌ No Session Found"
+				} else {
+					messageText = "WWDC 2017 Sessions:\n" + messageText
+				}
 				bot.send(
 					message: messageText,
 					to: message.chat,
@@ -75,24 +79,34 @@ bot.run(with: {
 				guard message.from?.username?.lowercased() == "shaneqi" else { return }
 				var args = Arguements(string: text).makeIterator()
 				_ = args.next()
-				guard let title = args.next(),
+				guard let idString = args.next(),
+					let id = Int(idString),
+					let title = args.next(),
 					let url = args.next() else { return }
-				let session = Session(title: title, url: url)
+				let session = Session(year: 2017, id: id, title: title, url: url)
 				do { 
 					try session.replace(into: db)
 					bot.send(
 						message: "✅ \(session)",
 						to: message,
-						parseMode: .MARKDOWN)
+						parseMode: .MARKDOWN,
+						disableWebPagePreview: true)
 				} catch {}
 			case "/rmss", "/rmss@cocoarobot":
 				guard message.from?.username?.lowercased() == "shaneqi" else { return }
 				var args = Arguements(string: text).makeIterator()
 				_ = args.next()
-				guard let column = args.next(),
-					let value = args.next() else { return }
-				do { 
-					try Session.remove(from: db, where: column, equals: value)
+				var next = args.next()
+				var pairs = [(String, String)]()
+				while let unwrappedNext = next {
+					let key = unwrappedNext
+					if let value = args.next() {
+						pairs.append((key, value))
+					}
+					next = args.next()
+				}
+				do {
+					try Session.remove(from: db, where: pairs)
 					bot.send(
 						message: "✅ Executed.",
 						to: message,
