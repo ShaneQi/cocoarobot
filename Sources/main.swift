@@ -13,8 +13,7 @@ import Foundation
 let bot = ZEGBot(token: token)
 let db = try! SQLite(in: dbPath,
                      managing: [
-						CrashCounter.self,
-						Session.self])
+						CrashCounter.self])
 var crashCounter = (try! CrashCounter.get(primaryKeyValue: Date().toString(withFormat: CrashCounter.dateFormat), from: db)) ?? CrashCounter(count: 0, date: Date())
 
 bot.run(with: {
@@ -61,57 +60,6 @@ bot.run(with: {
 					message: "Xcode 今日已崩溃 *\(count)* 次。",
 					to: message,
 					parseMode: .MARKDOWN)
-			case "/wwdc", "/wwdc@cocoarobot":
-				guard var sessions = try? Session.getAll(from: db) else { break }
-				sessions = Array(sessions.suffix(10)).reversed()
-				var messageText = sessions.map({ return "\($0)" }).joined(separator: "\n")
-				if messageText == "" {
-					messageText = "❌ No Session Found"
-				} else {
-					messageText = "WWDC 2017 Sessions:\n" + messageText
-				}
-				bot.send(
-					message: messageText,
-					to: message.chat,
-					parseMode: .MARKDOWN,
-					disableWebPagePreview: true)
-			case "/addss", "/addss@cocoarobot":
-				guard message.from?.username?.lowercased() == "shaneqi" else { return }
-				var args = Arguements(string: text).makeIterator()
-				_ = args.next()
-				guard let idString = args.next(),
-					let id = Int(idString),
-					let title = args.next(),
-					let url = args.next() else { return }
-				let session = Session(year: 2017, id: id, title: title, url: url)
-				do { 
-					try session.replace(into: db)
-					bot.send(
-						message: "✅ \(session)",
-						to: message,
-						parseMode: .MARKDOWN,
-						disableWebPagePreview: true)
-				} catch {}
-			case "/rmss", "/rmss@cocoarobot":
-				guard message.from?.username?.lowercased() == "shaneqi" else { return }
-				var args = Arguements(string: text).makeIterator()
-				_ = args.next()
-				var next = args.next()
-				var pairs = [(String, String)]()
-				while let unwrappedNext = next {
-					let key = unwrappedNext
-					if let value = args.next() {
-						pairs.append((key, value))
-					}
-					next = args.next()
-				}
-				do {
-					try Session.remove(from: db, where: pairs)
-					bot.send(
-						message: "✅ Executed.",
-						to: message,
-						parseMode: .MARKDOWN)
-				} catch {}
 			default:
 				break
 			}
