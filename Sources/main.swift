@@ -16,17 +16,16 @@ let db = try! SQLite(in: dbPath,
 						CrashCounter.self])
 var crashCounter = (try! CrashCounter.get(primaryKeyValue: Date().toString(withFormat: CrashCounter.dateFormat), from: db)) ?? CrashCounter(count: 0, date: Date())
 
-bot.run(with: {
-	update, bot in
+bot.run { update, bot in
 
 	guard let message = update.message else { return }
 	
-	guard (message.chat.type == .SUPERGROUP || message.chat.username?.lowercased() == "shaneqi") else {
+	guard (message.chat.type == .supergroup || message.chat.username?.lowercased() == "shaneqi") else {
 		bot.send(message: "❌ Services only available in group.", to: message.chat)
 		return
 	}
 	
-	if let newChatMemeber = message.new_chat_member {
+	if let newChatMemeber = message.newChatMember {
 		var text = [welcome + "\n",
 		            about + "\n",
 		            commandList
@@ -36,13 +35,13 @@ bot.run(with: {
 		}
 		bot.send(message: text,
 		         to: message.chat,
-		         parseMode: .MARKDOWN,
+		         parseMode: .markdown,
 		         disableWebPagePreview: true)
 	}
 	
 	message.entities?.forEach({ entity in
 		switch entity.type {
-		case .BOT_COMMAND:
+		case .botCommand:
 			guard var text = message.text else { break }
 			let command = text.subed(fromIndex: entity.offset, length: entity.length)
 			switch command.lowercased() {
@@ -50,7 +49,7 @@ bot.run(with: {
 				bot.send(
 					message: about,
 					to: message,
-					parseMode: .MARKDOWN,
+					parseMode: .markdown,
 					disableWebPagePreview: true)
 			case "/crash", "/crash@cocoarobot":
 				crashCounter.increase()
@@ -59,7 +58,7 @@ bot.run(with: {
 				bot.send(
 					message: "Xcode 今日已崩溃 *\(count)* 次。",
 					to: message,
-					parseMode: .MARKDOWN)
+					parseMode: .markdown)
 			default:
 				break
 			}
@@ -68,4 +67,4 @@ bot.run(with: {
 		}
 	})
 	
-})
+}
