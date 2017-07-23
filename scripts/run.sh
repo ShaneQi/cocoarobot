@@ -8,7 +8,7 @@ swift:3.1.0 \
 /bin/sh -c \
 "\
 apt-get update;\
-apt-get install uuid-dev libsqlite3-dev -y;\
+apt-get install libsqlite3-dev -y;\
 swift build;\
 ./.build/debug/cocoarobot;\
 "
