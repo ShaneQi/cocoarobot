@@ -1,7 +1,10 @@
+SCRIPT=`readlink -f "$0"`
+SCRIPTPATH=`dirname "$SCRIPT"`
+PROJPATH=`dirname "$SCRIPTPATH"`
 docker run \
 -d \
 --name cocoarobot \
--v `pwd`/:/cocoarobot \
+-v $PROJPATH:/cocoarobot \
 -v /home/shane/persistence/cocoarobot/:/db/ \
 -w /cocoarobot \
 swift:3.1.0 \
