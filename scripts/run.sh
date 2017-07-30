@@ -4,14 +4,12 @@ PROJPATH=`dirname "$SCRIPTPATH"`
 docker run \
 -d \
 --name cocoarobot \
+--link mysql:mysql \
 -v $PROJPATH:/cocoarobot \
--v /home/shane/persistence/cocoarobot/:/db/ \
 -w /cocoarobot \
 swift:3.1.0 \
-/bin/sh -c \
+/bin/bash -c \
 "\
-apt-get update;\
-apt-get install libsqlite3-dev -y;\
-swift build;\
-./.build/debug/cocoarobot;\
+apt update && apt install libsqlite3-dev -y;\
+swift build && ./.build/debug/cocoarobot;\
 "

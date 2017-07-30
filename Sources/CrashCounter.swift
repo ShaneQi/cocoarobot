@@ -49,9 +49,6 @@ extension CrashCounter {
 				let date = Date.from(string: dateString, withFormat: dateFormat),
 				let count = row[1] as? Int32 {
 				result = CrashCounter(count: Int(count), date: date)
-			} else {
-				dump(row[0])
-				dump(row[1])
 			}
 		}
 		return result
