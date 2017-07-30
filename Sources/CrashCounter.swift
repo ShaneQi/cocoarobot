@@ -45,10 +45,10 @@ extension CrashCounter {
 		statement.bindParam(primaryKeyValue)
 		try statement.execute(inDatabase: database)
 		_ = statement.results().forEachRow { row in
-			if let count = row[0] as? Int,
-				let dateString = row[1] as? String,
-				let date = Date.from(string: dateString, withFormat: dateFormat) {
-				result = CrashCounter(count: count, date: date)
+			if let dateString = row[0] as? String,
+				let date = Date.from(string: dateString, withFormat: dateFormat),
+				let count = row[1] as? Int32 {
+				result = CrashCounter(count: Int(count), date: date)
 			} else {
 				dump(row[0])
 				dump(row[1])
