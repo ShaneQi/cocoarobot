@@ -1,4 +1,0 @@
-{
-	"up": "ALTER TABLE products ADD platform TEXT;",
-	"down": "ALTER TABLE products DROP COLUMN platform;" 
-}
