@@ -7,13 +7,17 @@
 //
 
 import ZEGBot
-import SQLite
+import MySQL
 import Foundation
 
 let bot = ZEGBot(token: token)
-let db = try! SQLite(in: dbPath,
-                     managing: [
-						CrashCounter.self])
+let db = MySQL()
+let connected = db.connect(host: dbHost, user: dbUser, password: dbPassword, db: dbName, port: dbPort)
+if !connected {
+	dump(MySQLError(mySQL: db))
+	exit(9)
+}
+
 var crashCounter = (try! CrashCounter.get(primaryKeyValue: Date().toString(withFormat: CrashCounter.dateFormat), from: db)) ?? CrashCounter(count: 0, date: Date())
 
 bot.run { update, bot in
