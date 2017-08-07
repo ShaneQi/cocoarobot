@@ -20,7 +20,11 @@ if !connected {
 
 var crashCounter = (try! CrashCounter.get(primaryKeyValue: Date().toString(withFormat: CrashCounter.dateFormat), from: db)) ?? CrashCounter(count: 0, date: Date())
 
+var welcomeTime = Date().timeIntervalSince1970
+
 bot.run { update, bot in
+
+	let timeStamp = Date().timeIntervalSince1970
 
 	guard let message = update.message else { return }
 	
@@ -29,14 +33,16 @@ bot.run { update, bot in
 		return
 	}
 	
-	if let newChatMemeber = message.newChatMember {
+	if let newChatMemeber = message.newChatMember,
+		timeStamp - welcomeTime > 60 * 5 {
+
+        welcomeTime = timeStamp
+        
 		var text = [welcome + "\n",
 		            about + "\n",
 		            commandList
 			].joined(separator: "\n")
-		if let username = newChatMemeber.username {
-			text = [username.usernameWrapped,text].joined(separator: " ")
-		}
+        
 		bot.send(message: text,
 		         to: message.chat,
 		         parseMode: .markdown,
@@ -70,5 +76,5 @@ bot.run { update, bot in
 			break
 		}
 	})
-	
 }
+

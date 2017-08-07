@@ -8,5 +8,5 @@ swift:3.1.0 \
 /bin/bash -c \
 "\
 apt update && apt install libmysqlclient-dev -y;\
-swift build && ./.build/debug/cocoarobot;\
+swift build;\
 "
