@@ -20,6 +20,9 @@ if !connected {
 
 var crashCounter = (try! CrashCounter.get(primaryKeyValue: Date().toString(withFormat: CrashCounter.dateFormat), from: db)) ?? CrashCounter(count: 0, date: Date())
 
+let interval = 1000 * 60 * 5
+var welComeTime = getNowTime()
+
 bot.run { update, bot in
 
 	guard let message = update.message else { return }
@@ -30,13 +33,20 @@ bot.run { update, bot in
 	}
 	
 	if let newChatMemeber = message.newChatMember {
+        if getNowTime() - welComeTime <= interval {
+            return
+        }
+
+        welComeTime = getNowTime()
+        
 		var text = [welcome + "\n",
 		            about + "\n",
 		            commandList
 			].joined(separator: "\n")
-		if let username = newChatMemeber.username {
-			text = [username.usernameWrapped,text].joined(separator: " ")
-		}
+//		if let username = newChatMemeber.username {
+//			text = [username.usernameWrapped,text].joined(separator: " ")
+//		}
+        
 		bot.send(message: text,
 		         to: message.chat,
 		         parseMode: .markdown,
@@ -70,5 +80,8 @@ bot.run { update, bot in
 			break
 		}
 	})
-	
+}
+
+func getNowTime() -> Int {
+    Int(Date().timeIntervalSince1970)
 }
