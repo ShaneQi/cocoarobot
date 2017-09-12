@@ -69,21 +69,6 @@ bot.run { update, bot in
 					message: "Xcode 今日已崩溃 *\(count)* 次。",
 					to: message,
 					parseMode: .markdown)
-      case "/iphonex", "/iphonex@cocoarobot":
-        let interval = Int(Date(timeIntervalSince1970: 1505235600).timeIntervalSince(Date()))
-        let day = interval / 86400
-        let hour = interval / 3600 % 24
-        let min = interval % 3600 / 60
-        var timeComponents: [String] = []
-        if day > 0 { timeComponents.append("\(day) 天") }
-        if hour > 0 { timeComponents.append("\(hour) 小时") }
-        if min > 0 { timeComponents.append("\(min) 分钟") }
-        guard timeComponents.count > 0 else { break }
-				bot.send(
-					message: "现在距离 [Steve Jobs Theater 亮相](https://www.apple.com/apple-events/september-2017/) 还有 \(timeComponents.joined(separator: " ")).",
-					to: message,
-					parseMode: .markdown,
-					disableWebPagePreview: true)
 			default:
 				break
 			}
