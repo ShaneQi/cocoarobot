@@ -6,7 +6,7 @@
 //
 //
 
-import MySQL
+import PerfectMySQL
 
 struct MySQLError: Error {
 

@@ -7,7 +7,7 @@
 //
 
 import ZEGBot
-import MySQL
+import PerfectMySQL
 import Foundation
 
 let bot = ZEGBot(token: token)
@@ -22,7 +22,9 @@ var crashCounter = (try! CrashCounter.get(primaryKeyValue: Date().toString(withF
 
 var welcomeTime = Date().timeIntervalSince1970
 
-bot.run { update, bot in
+bot.run { updateResult, bot in
+
+	guard case .success(let update) = updateResult else { return }
 
 	let timeStamp = Date().timeIntervalSince1970
 
@@ -33,12 +35,12 @@ bot.run { update, bot in
 		return
 	}
 	
-	if let newChatMemeber = message.newChatMember,
+	if message.newChatMember != nil,
 		timeStamp - welcomeTime > 60 * 5 {
 
         welcomeTime = timeStamp
         
-		var text = [welcome + "\n",
+		let text = [welcome + "\n",
 		            about + "\n",
 		            commandList
 			].joined(separator: "\n")
@@ -52,7 +54,7 @@ bot.run { update, bot in
 	message.entities?.forEach({ entity in
 		switch entity.type {
 		case .botCommand:
-			guard var text = message.text else { break }
+			guard let text = message.text else { break }
 			let command = text.subed(fromIndex: entity.offset, length: entity.length)
 			switch command.lowercased() {
 			case "/about", "/about@cocoarobot":

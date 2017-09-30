@@ -1,0 +1,34 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "mysqlclient",
+        "repositoryURL": "https://github.com/PerfectlySoft/Perfect-mysqlclient-Linux.git",
+        "state": {
+          "branch": null,
+          "revision": "b35cf9671ae9ceb6dec05900b8a69e53ed1985d7",
+          "version": "2.0.1"
+        }
+      },
+      {
+        "package": "PerfectMySQL",
+        "repositoryURL": "https://github.com/PerfectlySoft/Perfect-MySQL.git",
+        "state": {
+          "branch": null,
+          "revision": "7c4d7197fb60194cff9d23b7b5ac9b7b5106240b",
+          "version": "3.0.0"
+        }
+      },
+      {
+        "package": "ZEGBot",
+        "repositoryURL": "https://github.com/shaneqi/ZEGBot.git",
+        "state": {
+          "branch": null,
+          "revision": "93bac9beaef2280fea8de5a09559bce63632eb1f",
+          "version": "4.0.0"
+        }
+      }
+    ]
+  },
+  "version": 1
+}

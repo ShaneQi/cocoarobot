@@ -5,7 +5,7 @@ docker run \
 --link mysql:mysql \
 -v `pwd`:/cocoarobot \
 -w /cocoarobot \
-cocoarobot:latest \
+shaneqi/cocoarobot:latest \
 /bin/bash -c \
 "\
 swift build && ./.build/debug/cocoarobot;\

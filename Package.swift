@@ -1,9 +1,17 @@
+// swift-tools-version:4.0
+
 import PackageDescription
 
 let package = Package(
     name: "cocoarobot",
+	products: [
+		.executable(name: "cocoarobot", targets: ["cocoarobot"])
+	],
 	dependencies: [
-		.Package(url: "https://github.com/ShaneQi/ZEGBot.git", majorVersion: 2),
-		.Package(url:"https://github.com/PerfectlySoft/Perfect-MySQL.git", majorVersion: 2)
+		.package(url: "https://github.com/shaneqi/ZEGBot.git", from: Version(4, 0, 0)),
+		.package(url: "https://github.com/PerfectlySoft/Perfect-MySQL.git", from: Version(3, 0, 0))
+	],
+	targets: [
+		.target(name: "cocoarobot", dependencies: ["ZEGBot", "PerfectMySQL"], path: "./Sources")
 	]
 )

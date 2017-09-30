@@ -1,2 +1,2 @@
-FROM swift:3.1.0
+FROM swiftdocker/swift:latest
 RUN apt update && apt install libmysqlclient-dev -y

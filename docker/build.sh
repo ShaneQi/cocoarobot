@@ -5,7 +5,7 @@ docker run \
 --name cocoarobot_build \
 -v `pwd`:/cocoarobot \
 -w /cocoarobot \
-cocoarobot:latest \
+shaneqi/cocoarobot:latest \
 /bin/bash -c \
 "\
 swift build;\
