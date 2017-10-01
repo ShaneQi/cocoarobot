@@ -1,9 +1,9 @@
 struct Arguements: Sequence, IteratorProtocol {
 
-	private var characters: String.CharacterView
+	private var characters: String
 	
 	init(string: String) {
-		self.characters = string.characters
+		self.characters = string
 	}
 	
 	mutating func next() -> String? {
