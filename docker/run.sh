@@ -7,6 +7,4 @@ docker run \
 -w /cocoarobot \
 shaneqi/cocoarobot:latest \
 /bin/bash -c \
-"\
-swift build && ./.build/debug/cocoarobot;\
-"
+"swift run"
