@@ -71,6 +71,9 @@ bot.run { updateResult, bot in
 					message: "Xcode 今日已崩溃 *\(count)* 次。",
 					to: message,
 					parseMode: .markdown)
+				bot.send(
+					sticker: "CAADBQADFgADeW-oDo2q3CV0lvJBAg",
+					to: message)
 			default:
 				break
 			}
