@@ -41,8 +41,8 @@ bot.run { updateResult, bot in
         welcomeTime = timeStamp
         
 		let text = [welcome + "\n",
-		            about + "\n",
-		            commandList
+		            commandList + "\n",
+		            about
 			].joined(separator: "\n")
         
 		bot.send(message: text,
