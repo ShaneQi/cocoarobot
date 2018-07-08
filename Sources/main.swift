@@ -19,14 +19,11 @@ if !connected {
 }
 
 var crashCounter = (try! CrashCounter.get(primaryKeyValue: Date().toString(withFormat: CrashCounter.dateFormat), from: db)) ?? CrashCounter(count: 0, date: Date())
-
-var welcomeTime = Date().timeIntervalSince1970
+var lastWelcomeMessage: (messageId: Int, chatId: Int)?
 
 bot.run { updateResult, bot in
 
 	guard case .success(let update) = updateResult else { return }
-
-	let timeStamp = Date().timeIntervalSince1970
 
 	guard let message = update.message else { return }
 	
@@ -35,20 +32,25 @@ bot.run { updateResult, bot in
 		return
 	}
 	
-	if message.newChatMember != nil,
-		timeStamp - welcomeTime > 60 * 5 {
-
-        welcomeTime = timeStamp
+	if message.text == "new member" {
         
 		let text = [welcome + "\n",
 		            commandList + "\n",
 		            about
 			].joined(separator: "\n")
-        
-		bot.send(message: text,
-		         to: message.chat,
-		         parseMode: .markdown,
-		         disableWebPagePreview: true)
+
+		if let lastWelcomeMessage = lastWelcomeMessage {
+			bot.deleteMessage(inChat: lastWelcomeMessage.chatId, messageId: lastWelcomeMessage.messageId)
+		}
+
+		if let welcomeMessage = bot.send(
+			message: text,
+			to: message.chat,
+			parseMode: .markdown,
+			disableWebPagePreview: true).value {
+			lastWelcomeMessage = (welcomeMessage.messageId, welcomeMessage.chatId)
+		}
+
 	}
 	
 	message.entities?.forEach({ entity in
@@ -71,9 +73,7 @@ bot.run { updateResult, bot in
 					message: "Xcode 今日已崩溃 *\(count)* 次。",
 					to: message,
 					parseMode: .markdown)
-				bot.send(
-					sticker: "CAADBQADFgADeW-oDo2q3CV0lvJBAg",
-					to: message)
+				bot.send(Sticker(id: "CAADBQADFgADeW-oDo2q3CV0lvJBAg"), to: message)
 			default:
 				break
 			}
@@ -82,4 +82,3 @@ bot.run { updateResult, bot in
 		}
 	})
 }
-
