@@ -12,10 +12,10 @@
       },
       {
         "package": "mysqlclient",
-        "repositoryURL": "https://github.com/PerfectlySoft/Perfect-mysqlclient.git",
+        "repositoryURL": "https://github.com/PerfectlySoft/Perfect-mysqlclient-Linux.git",
         "state": {
           "branch": null,
-          "revision": "51991fc81e40ddef36e8db1868c9b7f1f83d30dc",
+          "revision": "b35cf9671ae9ceb6dec05900b8a69e53ed1985d7",
           "version": "2.0.1"
         }
       },

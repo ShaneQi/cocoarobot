@@ -32,7 +32,7 @@ bot.run { updateResult, bot in
 		return
 	}
 	
-	if message.text == "new member" {
+	if message.newChatMember != nil {
         
 		let text = [welcome + "\n",
 		            commandList + "\n",

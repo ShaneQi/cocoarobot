@@ -1,2 +1,2 @@
-FROM shaneqi/swift:4.0-DEVELOPMENT-SNAPSHOT-2017-09-30-a
+FROM swift:4.1
 RUN apt update && apt install libmysqlclient-dev -y
