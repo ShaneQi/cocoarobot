@@ -1,2 +1,2 @@
-FROM swift:4.1
+FROM swift:4.2
 RUN apt update && apt install libmysqlclient-dev -y
