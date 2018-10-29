@@ -13,5 +13,6 @@ let package = Package(
 	],
 	targets: [
 		.target(name: "cocoarobot", dependencies: ["ZEGBot", "PerfectMySQL"], path: "./Sources")
-	]
+	],
+	swiftLanguageVersions: [.v4_2]
 )
