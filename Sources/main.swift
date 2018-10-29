@@ -9,16 +9,16 @@
 import ZEGBot
 import PerfectMySQL
 import Foundation
+import PerfectCRUD
 
 let bot = ZEGBot(token: token)
-let db = MySQL()
-let connected = db.connect(host: dbHost, user: dbUser, password: dbPassword, db: dbName, port: dbPort)
-if !connected {
-	dump(MySQLError(mySQL: db))
-	exit(9)
-}
 
-var crashCounter = (try! CrashCounter.get(primaryKeyValue: Date().toString(withFormat: CrashCounter.dateFormat), from: db)) ?? CrashCounter(count: 0, date: Date())
+var mysql: Database<MySQLDatabaseConfiguration> {
+	return Database(configuration: try! MySQLDatabaseConfiguration(
+		database: dbName, host: dbHost, port: dbPort, username: dbUser, password: dbPassword))
+}
+try! mysql.create(CrashCounter.self, primaryKey: \.date)
+
 var lastWelcomeMessage: (messageId: Int, chatId: Int)?
 
 bot.run { updateResult, bot in
@@ -26,14 +26,14 @@ bot.run { updateResult, bot in
 	guard case .success(let update) = updateResult else { return }
 
 	guard let message = update.message else { return }
-	
+
 	guard (message.chat.type == .supergroup || message.chat.username?.lowercased() == "shaneqi") else {
 		bot.send(message: "❌ Services only available in group.", to: message.chat)
 		return
 	}
-	
+
 	if message.newChatMember != nil {
-        
+
 		let text = [welcome + "\n",
 		            commandList + "\n",
 		            about
@@ -52,7 +52,7 @@ bot.run { updateResult, bot in
 		}
 
 	}
-	
+
 	message.entities?.forEach({ entity in
 		switch entity.type {
 		case .botCommand:
@@ -66,8 +66,18 @@ bot.run { updateResult, bot in
 					parseMode: .markdown,
 					disableWebPagePreview: true)
 			case "/crash", "/crash@cocoarobot":
-				crashCounter.increase()
-				try? crashCounter.replace(into: db)
+				let crashCounter: CrashCounter = {
+					let crashCounterTable = mysql.table(CrashCounter.self)
+					if let todayCrashCounter = try! crashCounterTable.where(\CrashCounter.date == Date().firstMomentOfToday).first() {
+						let counter = CrashCounter(count: todayCrashCounter.count + 1, date: todayCrashCounter.date)
+						try! crashCounterTable.update(counter)
+						return counter
+					} else {
+						let counter = CrashCounter(count: 1, date: Date())
+						try! crashCounterTable.insert(counter)
+						return counter
+					}
+				} ()
 				let count = crashCounter.count
 				bot.send(
 					message: "Xcode 今日已崩溃 *\(count)* 次。",

@@ -22,4 +22,8 @@ extension Date {
 		return dateFormatter.date(from: string)
 	}
 
+	var firstMomentOfToday: Date {
+		return self - timeIntervalSince1970.truncatingRemainder(dividingBy: 86400)
+	}
+
 }

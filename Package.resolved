@@ -2,20 +2,29 @@
   "object": {
     "pins": [
       {
+        "package": "PerfectCRUD",
+        "repositoryURL": "https://github.com/PerfectlySoft/Perfect-CRUD.git",
+        "state": {
+          "branch": null,
+          "revision": "8e63cf0b0c9b6b68fa28c1bc7c1ffd8b45d625fb",
+          "version": "1.1.3"
+        }
+      },
+      {
         "package": "PerfectMySQL",
         "repositoryURL": "https://github.com/PerfectlySoft/Perfect-MySQL.git",
         "state": {
           "branch": null,
-          "revision": "7c4d7197fb60194cff9d23b7b5ac9b7b5106240b",
-          "version": "3.0.0"
+          "revision": "e5e1b40b12c40de99526c12f36790077436d3f61",
+          "version": "3.2.1"
         }
       },
       {
         "package": "mysqlclient",
-        "repositoryURL": "https://github.com/PerfectlySoft/Perfect-mysqlclient-Linux.git",
+        "repositoryURL": "https://github.com/PerfectlySoft/Perfect-mysqlclient.git",
         "state": {
           "branch": null,
-          "revision": "b35cf9671ae9ceb6dec05900b8a69e53ed1985d7",
+          "revision": "51991fc81e40ddef36e8db1868c9b7f1f83d30dc",
           "version": "2.0.1"
         }
       },
@@ -24,7 +33,7 @@
         "repositoryURL": "https://github.com/shaneqi/ZEGBot.git",
         "state": {
           "branch": "develop",
-          "revision": "be9b8fc2aad8af62cc087481c3bf0c295bd6642f",
+          "revision": "e83b81384e09eb91a93cca5ea1b5c9532f812eaa",
           "version": null
         }
       }
