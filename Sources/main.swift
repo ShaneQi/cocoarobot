@@ -74,6 +74,15 @@ bot.run { updateResult, bot in
 					to: message,
 					parseMode: .markdown)
 				bot.send(Sticker(id: "CAADBQADFgADeW-oDo2q3CV0lvJBAg"), to: message)
+			case "/admin", "/admin@cocoarobot":
+				switch bot.getChatAdministrators(ofChatWithId: message.chatId) {
+				case .success(let admins):
+					let text = admins.compactMap({ $0.user.isBot ? nil : $0.user.username?.usernameWrapped })
+						.joined(separator: " ")
+					bot.send(message: text, to: message.chat)
+				case .failure(let error):
+					bot.send(message: "Failed to call admins.\n\(error)", to: shaneChatId)
+				}
 			default:
 				break
 			}

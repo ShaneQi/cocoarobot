@@ -19,3 +19,10 @@ extension Sticker {
 	}
 
 }
+
+extension Int: Sendable {
+
+	public var chatId: Int { return self }
+	public var replyToMessageId: Int? { return nil }
+
+}
