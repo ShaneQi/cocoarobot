@@ -13,11 +13,16 @@ import PerfectCRUD
 
 let bot = ZEGBot(token: token)
 
-var mysql: Database<MySQLDatabaseConfiguration> {
-	return Database(configuration: try! MySQLDatabaseConfiguration(
+func mysql() throws -> Database<MySQLDatabaseConfiguration> {
+	return Database(configuration: try MySQLDatabaseConfiguration(
 		database: dbName, host: dbHost, port: dbPort, username: dbUser, password: dbPassword))
 }
-try! mysql.create(CrashCounter.self, primaryKey: \.date)
+
+do {
+	try mysql().create(CrashCounter.self, primaryKey: \.date)
+} catch let error {
+	bot.send(message: "Failed to create crash count table.\n\(error)", to: shaneChatId)
+}
 
 var lastWelcomeMessage: (messageId: Int, chatId: Int)?
 
@@ -66,24 +71,22 @@ bot.run { updateResult, bot in
 					parseMode: .markdown,
 					disableWebPagePreview: true)
 			case "/crash", "/crash@cocoarobot":
-				let crashCounter: CrashCounter = {
-					let crashCounterTable = mysql.table(CrashCounter.self)
-					if let todayCrashCounter = try! crashCounterTable.where(\CrashCounter.date == Date().firstMomentOfToday).first() {
-						let counter = CrashCounter(count: todayCrashCounter.count + 1, date: todayCrashCounter.date)
-						try! crashCounterTable.update(counter)
-						return counter
-					} else {
-						let counter = CrashCounter(count: 1, date: Date())
-						try! crashCounterTable.insert(counter)
-						return counter
-					}
-				} ()
-				let count = crashCounter.count
-				bot.send(
-					message: "Xcode 今日已崩溃 *\(count)* 次。",
-					to: message,
-					parseMode: .markdown)
-				bot.send(Sticker(id: "CAADBQADFgADeW-oDo2q3CV0lvJBAg"), to: message)
+				do {
+					let crashCounterTable = try mysql().table(CrashCounter.self)
+					let date = Date().firstMomentOfToday
+					let query = crashCounterTable.where(\CrashCounter.date == date)
+					let newCount = (try query.first()?.count ?? 0) + 1
+					try query.delete()
+					let counter = CrashCounter(count: newCount, date: date)
+					try crashCounterTable.insert(counter)
+					bot.send(
+						message: "Xcode 今日已崩溃 *\(newCount)* 次。",
+						to: message,
+						parseMode: .markdown)
+					bot.send(Sticker(id: "CAADBQADFgADeW-oDo2q3CV0lvJBAg"), to: message)
+				} catch let error {
+					bot.send(message: "Failed to count crash.\n\(error)", to: shaneChatId)
+				}
 			case "/admin", "/admin@cocoarobot":
 				switch bot.getChatAdministrators(ofChatWithId: message.chatId) {
 				case .success(let admins):

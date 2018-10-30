@@ -11,12 +11,7 @@ import PerfectMySQL
 
 struct CrashCounter: Codable {
 
-	var count: Int
-	var date: Date
-
-	init(count: Int, date: Date) {
-		self.count = count
-		self.date = date.firstMomentOfToday
-	}
+	let count: Int
+	let date: Date
 
 }
