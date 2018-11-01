@@ -112,18 +112,32 @@ bot.run { updateResult, bot in
 		switch callbackQuery.data {
 		case verificationKey?:
 			do {
-				let pendingMemberTable = try mysql().table(PendingMember.self)
+				let db = try mysql()
+				let pendingMemberTable = db.table(PendingMember.self)
 				let query = pendingMemberTable.where(\PendingMember.id == callbackQuery.from.id)
 				if let pendingMember = try query.first() {
 					try query.delete()
 					bot.answerCallbackQuery(callbackQueryId: callbackQuery.id, text: "Thanks.")
 					bot.deleteMessage(inChat: pendingMember.chatId, messageId: pendingMember.verificationMessageId)
 
+					let welcomeMessageTable = db.table(WelcomeMessage.self)
+					let query = welcomeMessageTable.where(\WelcomeMessage.chatId == pendingMember.chatId)
+					if let previousWelcomeMessage = try query.first() {
+						bot.deleteMessage(inChat: previousWelcomeMessage.chatId, messageId: previousWelcomeMessage.id)
+						try query.delete()
+					}
 					let text = [welcome + "\n",
 								commandList + "\n",
 								about
 						].joined(separator: "\n")
-					bot.send(message: text, to: pendingMember.chatId, parseMode: .markdown, disableWebPagePreview: true)
+					switch bot.send(
+						message: text, to: pendingMember.chatId, parseMode: .markdown,
+						disableWebPagePreview: true) {
+					case .success(let message):
+						try welcomeMessageTable.insert(WelcomeMessage(id: message.messageId, chatId: message.chatId))
+					default:
+						break
+					}
 				} else {
 					bot.answerCallbackQuery(callbackQueryId: callbackQuery.id, text: "No action required from you.")
 				}
