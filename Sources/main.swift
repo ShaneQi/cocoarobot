@@ -20,8 +20,9 @@ func mysql() throws -> Database<MySQLDatabaseConfiguration> {
 
 do {
 	try mysql().create(CrashCounter.self, primaryKey: \.date)
+	try mysql().create(PendingMember.self, primaryKey: \.id)
 } catch let error {
-	bot.send(message: "Failed to create crash count table.\n\(error)", to: shaneChatId)
+	bot.send(message: "Failed to create mysql tables.\n\(error)", to: shaneChatId)
 }
 
 bot.run { updateResult, bot in
