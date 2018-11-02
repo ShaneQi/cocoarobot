@@ -23,7 +23,7 @@ do {
 	try mysql().create(PendingMember.self, primaryKey: \.id)
 	try mysql().create(WelcomeMessage.self, primaryKey: \.chatId)
 } catch let error {
-	bot.send(message: "Failed to create mysql tables.\n\(error)", to: shaneChatId)
+	Logger.default.log("Failed to create mysql tables.\n\(error)", bot: bot)
 }
 
 bot.run { updateResult, bot in
@@ -34,7 +34,7 @@ bot.run { updateResult, bot in
 	case .message(_, let message):
 		guard authorizedChats.contains(message.chat.id) else {
 			bot.send(message: "❌ Service not authorized.", to: message.chat)
-			bot.send(message:"Unauthorized service was requested by: (\(message.chat)).", to: shaneChatId)
+			Logger.default.log("Unauthorized service was requested by: (\(message.chat)).", bot: bot)
 			return
 		}
 		if let newMember = message.newChatMember {
@@ -59,7 +59,7 @@ bot.run { updateResult, bot in
 					break
 				}
 			} catch let error {
-				bot.send(message: "Failed to send insert pending member.\n\(error)", to: shaneChatId)
+				Logger.default.log("Failed to send insert pending member.\n\(error)", bot: bot)
 			}
 		} else if let entities = message.entities {
 			entities.forEach { entity in
@@ -89,7 +89,7 @@ bot.run { updateResult, bot in
 								parseMode: .markdown)
 							bot.send(Sticker(id: "CAADBQADFgADeW-oDo2q3CV0lvJBAg"), to: message)
 						} catch let error {
-							bot.send(message: "Failed to count crash.\n\(error)", to: shaneChatId)
+							Logger.default.log("Failed to count crash.\n\(error)", bot: bot)
 						}
 					case "/admin", "/admin@cocoarobot":
 						switch bot.getChatAdministrators(ofChatWithId: message.chatId) {
@@ -98,7 +98,7 @@ bot.run { updateResult, bot in
 								.joined(separator: " ")
 							bot.send(message: text, to: message.chat)
 						case .failure(let error):
-							bot.send(message: "Failed to call admins.\n\(error)", to: shaneChatId)
+							Logger.default.log("Failed to call admins.\n\(error)", bot: bot)
 						}
 					default:
 						break
@@ -142,7 +142,7 @@ bot.run { updateResult, bot in
 					bot.answerCallbackQuery(callbackQueryId: callbackQuery.id, text: "No action required from you.")
 				}
 			} catch let error {
-				bot.send(message: "Failed to verify pending member.\n\(error)", to: shaneChatId)
+				Logger.default.log("Failed to verify pending member.\n\(error)", bot: bot)
 			}
 		default:
 			break
