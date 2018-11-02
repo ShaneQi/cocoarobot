@@ -33,7 +33,7 @@ bot.run { updateResult, bot in
 	switch update {
 	case .message(_, let message):
 		guard authorizedChats.contains(message.chat.id) else {
-			bot.send(message: "❌ Service not authorized.", to: message.chat)
+			bot.send(message: String.unauthorizedChat, to: message.chat)
 			Logger.default.log("Unauthorized service was requested by: (\(message.chat)).", bot: bot)
 			return
 		}
@@ -44,11 +44,11 @@ bot.run { updateResult, bot in
 				let pendingMemberTable = try mysql().table(PendingMember.self)
 				try pendingMemberTable.where(\PendingMember.id == newMember.id).delete()
 				switch bot.send(
-					message: "[\(newMember.displayName)](tg://user?id=\(newMember.id)",
+					message: "[\(newMember.displayName)](tg://user?id=\(newMember.id)) " + String.newMemberVerification,
 					to: message.chat,
 					parseMode: .markdown,
 					replyMarkup: InlineKeyboardMarkup(inlineKeyboard: [[
-						InlineKeyboardButton(text: "I'm good.", callbackData: verificationKey)
+						InlineKeyboardButton(text: String.newMemberVerificationButton, callbackData: verificationKey)
 						]])) {
 				case .success(let verificationMessage):
 					try pendingMemberTable.insert(PendingMember(
@@ -70,7 +70,7 @@ bot.run { updateResult, bot in
 					switch command.lowercased() {
 					case "/about", "/about@cocoarobot":
 						bot.send(
-							message: about,
+							message: String.about,
 							to: message,
 							parseMode: .markdown,
 							disableWebPagePreview: true)
@@ -84,7 +84,7 @@ bot.run { updateResult, bot in
 							let counter = CrashCounter(count: newCount, date: date)
 							try crashCounterTable.insert(counter)
 							bot.send(
-								message: "Xcode 今日已崩溃 *\(newCount)* 次。",
+								message: String(format: .crashCount, newCount),
 								to: message,
 								parseMode: .markdown)
 							bot.send(Sticker(id: "CAADBQADFgADeW-oDo2q3CV0lvJBAg"), to: message)
@@ -117,7 +117,7 @@ bot.run { updateResult, bot in
 				let query = pendingMemberTable.where(\PendingMember.id == callbackQuery.from.id)
 				if let pendingMember = try query.first() {
 					try query.delete()
-					bot.answerCallbackQuery(callbackQueryId: callbackQuery.id, text: "Thanks.")
+					bot.answerCallbackQuery(callbackQueryId: callbackQuery.id, text: String.verificationSuccess)
 					bot.deleteMessage(inChat: pendingMember.chatId, messageId: pendingMember.verificationMessageId)
 
 					let welcomeMessageTable = db.table(WelcomeMessage.self)
@@ -126,9 +126,9 @@ bot.run { updateResult, bot in
 						bot.deleteMessage(inChat: previousWelcomeMessage.chatId, messageId: previousWelcomeMessage.id)
 						try query.delete()
 					}
-					let text = [welcome + "\n",
-								commandList + "\n",
-								about
+					let text = [String.welcome + "\n",
+								String.commandList + "\n",
+								String.about
 						].joined(separator: "\n")
 					switch bot.send(
 						message: text, to: pendingMember.chatId, parseMode: .markdown,
@@ -139,7 +139,7 @@ bot.run { updateResult, bot in
 						break
 					}
 				} else {
-					bot.answerCallbackQuery(callbackQueryId: callbackQuery.id, text: "No action required from you.")
+					bot.answerCallbackQuery(callbackQueryId: callbackQuery.id, text: String.verificationWarning)
 				}
 			} catch let error {
 				Logger.default.log("Failed to verify pending member.\n\(error)", bot: bot)
