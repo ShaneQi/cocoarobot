@@ -32,7 +32,7 @@ bot.run { updateResult, bot in
 
 	switch update {
 	case .message(_, let message):
-		guard authorizedGroups.contains(message.chat.id) || message.chat.id == shaneChatId else {
+		guard authorizedChats.contains(message.chat.id) else {
 			bot.send(message: "❌ Service not authorized.", to: message.chat)
 			bot.send(message:"Unauthorized service was requested by: (\(message.chat)).", to: shaneChatId)
 			return
