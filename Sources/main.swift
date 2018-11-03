@@ -12,6 +12,7 @@ import Foundation
 import PerfectCRUD
 
 let bot = ZEGBot(token: token)
+FrequencyMonitor.instance.start()
 
 func mysql() throws -> Database<MySQLDatabaseConfiguration> {
 	return Database(configuration: try MySQLDatabaseConfiguration(
@@ -37,6 +38,9 @@ bot.run { updateResult, bot in
 			Logger.default.log("Unauthorized service was requested by: (\(message.chat)).", bot: bot)
 			return
 		}
+
+		FrequencyMonitor.instance.punch()
+
 		if let newMember = message.newChatMember {
 //		if message.text == "new" {
 //			let newMember = message.from!
