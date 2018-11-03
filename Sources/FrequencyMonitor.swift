@@ -31,7 +31,7 @@ final class FrequencyMonitor {
 		let now = Date()
 		punchCount += 1
 		NSLog("🕙 one %f", now.timeIntervalSince(lastPunchTime))
-		NSLog("🕙 avg %f", now.timeIntervalSince(startedAt) / punchCount)
+		NSLog("🕙             avg %f", now.timeIntervalSince(startedAt) / punchCount)
 		lastPunchTime = now
 	}
 
