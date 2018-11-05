@@ -59,6 +59,14 @@ bot.run { updateResult, bot in
 						id: newMember.id, joinedAt: Date(),
 						verificationMessageId: verificationMessage.messageId,
 						chatId: verificationMessage.chatId))
+					bot.restrictChatMember(
+						chatId: message.chatId,
+						userId: newMember.id,
+						untilDate: 0,
+						canSendMessages: false,
+						canSendMediaMessages: false,
+						canSendOtherMessages: false,
+						canSendWebPagePreviews: false)
 				case .failure:
 					break
 				}
@@ -123,6 +131,14 @@ bot.run { updateResult, bot in
 					try query.delete()
 					bot.answerCallbackQuery(callbackQueryId: callbackQuery.id, text: String.verificationSuccess)
 					bot.deleteMessage(inChat: pendingMember.chatId, messageId: pendingMember.verificationMessageId)
+					bot.restrictChatMember(
+						chatId: pendingMember.chatId,
+						userId: pendingMember.id,
+						untilDate: 0,
+						canSendMessages: true,
+						canSendMediaMessages: true,
+						canSendOtherMessages: true,
+						canSendWebPagePreviews: true)
 
 					let welcomeMessageTable = db.table(WelcomeMessage.self)
 					let query = welcomeMessageTable.where(\WelcomeMessage.chatId == pendingMember.chatId)
