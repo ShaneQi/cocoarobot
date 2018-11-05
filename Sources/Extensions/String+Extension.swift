@@ -16,7 +16,7 @@ extension String {
 	
 	func subed(fromIndex offset: Int, length: Int) -> String {
 		let start = (offset < 0) ? 0 : offset
-		let end = (start + length > characters.count) ? characters.count : start + length
+		let end = (start + length > count) ? count : start + length
 		let fromIndex = index(startIndex, offsetBy: start)
 		let toIndex = index(startIndex, offsetBy: end)
 		var copy = self
@@ -24,6 +24,10 @@ extension String {
 		copy.removeSubrange(toIndex..<endIndex)
 		return copy
 	}
+
+}
+
+extension String {
 
 	static let unauthorizedChat = "❌ Service not authorized in this chat."
 	static let welcome = "欢迎加入 iOS/macOS/watchOS/tvOS 开发者群组。"
