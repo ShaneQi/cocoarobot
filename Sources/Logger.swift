@@ -16,7 +16,11 @@ final class Logger {
 
 	func log(_ errorText: String, bot: ZEGBot) {
 		NSLog(errorText)
-		bot.send(message: errorText, to: shaneChatId)
+		do {
+			try bot.send(message: errorText, to: shaneChatId)
+		} catch let error {
+			NSLog("❌ YOU MISSED: \(errorText) due to \(error), ")
+		}
 	}
 
 }
