@@ -141,7 +141,7 @@ do {
 						let welcomeMessageTable = db.table(WelcomeMessage.self)
 						let query = welcomeMessageTable.where(\WelcomeMessage.chatId == pendingMember.chatId)
 						if let previousWelcomeMessage = try query.first() {
-							try bot.deleteMessage(inChat: previousWelcomeMessage.chatId, messageId: previousWelcomeMessage.id)
+							try? bot.deleteMessage(inChat: previousWelcomeMessage.chatId, messageId: previousWelcomeMessage.id)
 							try query.delete()
 						}
 						let text = [String.welcome + "\n",
