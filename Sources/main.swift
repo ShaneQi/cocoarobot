@@ -12,6 +12,8 @@ import Foundation
 import PerfectCRUD
 
 let bot = ZEGBot(token: token)
+CRUDLogging.queryLogDestinations = []
+CRUDLogging.errorLogDestinations = []
 
 func mysql() throws -> Database<MySQLDatabaseConfiguration> {
 	return Database(configuration: try MySQLDatabaseConfiguration(
