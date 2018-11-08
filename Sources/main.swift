@@ -62,11 +62,37 @@ do {
 					try bot.restrictChatMember(
 						chatId: message.chatId,
 						userId: newMember.id,
-						untilDate: 0,
+						untilDate: Date(timeIntervalSince1970: 0),
 						canSendMessages: false,
 						canSendMediaMessages: false,
 						canSendOtherMessages: false,
 						canSendWebPagePreviews: false)
+					func kickMemberIfNeeded(chatId: Int, userId: Int) {
+						do {
+							let query = try mysql().table(PendingMember.self)
+								.where(\PendingMember.chatId == chatId && \PendingMember.id == userId)
+							if try query.count() > 0 {
+								try bot.kickChatMember(chatId: chatId, userId: userId, untilDate: Date().addingTimeInterval(120))
+								try query.delete()
+							}
+						} catch let error {
+							Logger.default.log("Failed to kick unverified member due to: \(error)", bot: bot)
+						}
+					}
+					DispatchQueue(label: "com.shaneqi.cocoarobot.verifier.\(message.chatId).\(newMember.id)").async {
+						#if os(Linux)
+						Timer.scheduledTimer(withTimeInterval: 60 * 5, repeats: false) { _ in
+							kickMemberIfNeeded(chatId: message.chatId, userId: newMember.id)
+						}
+						#else
+						if #available(OSX 10.12, *) {
+							Timer.scheduledTimer(withTimeInterval: 60 * 5, repeats: false) { _ in
+								kickMemberIfNeeded(chatId: message.chatId, userId: newMember.id)
+							}
+						}
+						#endif
+						RunLoop.current.run()
+					}
 				} catch let error {
 					Logger.default.log("Failed to complete verification request due to: \(error)", bot: bot)
 				}
@@ -135,7 +161,7 @@ do {
 						try bot.restrictChatMember(
 							chatId: pendingMember.chatId,
 							userId: pendingMember.id,
-							untilDate: 0,
+							untilDate: Date(timeIntervalSince1970: 0),
 							canSendMessages: true,
 							canSendMediaMessages: true,
 							canSendOtherMessages: true,
