@@ -12,6 +12,7 @@ struct PendingMember: Codable {
 	let id: Int
 	let joinedAt: Date
 	let verificationMessageId: Int
+	let newMemberMessageId: Int
 	let chatId: Int
 
 }

@@ -58,6 +58,7 @@ do {
 					try pendingMemberTable.insert(PendingMember(
 						id: newMember.id, joinedAt: Date(),
 						verificationMessageId: verificationMessage.messageId,
+						newMemberMessageId: message.messageId,
 						chatId: verificationMessage.chatId))
 					try bot.restrictChatMember(
 						chatId: message.chatId,
@@ -74,6 +75,7 @@ do {
 							if let memberToKick = try query.first() {
 								try bot.kickChatMember(chatId: chatId, userId: userId, untilDate: Date().addingTimeInterval(120))
 								try bot.deleteMessage(inChat: chatId, messageId: memberToKick.verificationMessageId)
+								try bot.deleteMessage(inChat: chatId, messageId: memberToKick.newMemberMessageId)
 								try query.delete()
 							}
 						} catch let error {
@@ -96,6 +98,12 @@ do {
 					}
 				} catch let error {
 					Logger.default.log("Failed to complete verification request due to: \(error)", bot: bot)
+				}
+			} else if message.leftChatMember != nil {
+				do {
+					try bot.deleteMessage(inChat: message.chatId, messageId: message.messageId)
+				} catch let error {
+					Logger.default.log("Failed to delete left chat member message due to: \(error)", bot: bot)
 				}
 			} else if let entities = message.entities {
 				entities.forEach { entity in
