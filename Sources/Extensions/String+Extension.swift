@@ -33,11 +33,11 @@ extension String {
 	static let welcome = "欢迎加入 iOS/macOS/watchOS/tvOS 开发者群组。"
 	static let newMemberVerification = [
 		welcome,
-		"*发言前请点击下方验证按钮。*",
+		"*发言前请点击下方验证按钮。*\n*若五分钟内无法完成验证，你将会被从此群组中移除。*",
 		"(BETA)"].joined(separator: "\n\n")
 	static let newMemberVerificationButton = "我是好人"
 	static let verificationSuccess = "验证成功，谢谢。"
-	static let verificationWarning = "无需验证，谢谢。"
+	static let verificationWarning = "无需你的验证，谢谢。"
 	static let about = "Cocoa Robot 开源在 [GitHub](https://github.com/ShaneQi/cocoarobot)."
 	static let commandList = [
 		"命令列表：",
