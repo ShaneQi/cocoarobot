@@ -21,9 +21,10 @@ func mysql() throws -> Database<MySQLDatabaseConfiguration> {
 }
 
 do {
-	try mysql().create(CrashCounter.self, primaryKey: \.date)
-	try mysql().create(PendingMember.self, primaryKey: \.id)
-	try mysql().create(WelcomeMessage.self, primaryKey: \.chatId)
+	let db = try mysql()
+	try db.create(CrashCounter.self, primaryKey: \.date)
+	try db.create(PendingMember.self, primaryKey: \.id)
+	try db.create(WelcomeMessage.self, primaryKey: \.chatId)
 } catch let error {
 	Logger.default.log("Failed to create mysql tables due to: \(error)", bot: bot)
 }
