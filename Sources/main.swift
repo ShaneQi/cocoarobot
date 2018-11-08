@@ -71,8 +71,9 @@ do {
 						do {
 							let query = try mysql().table(PendingMember.self)
 								.where(\PendingMember.chatId == chatId && \PendingMember.id == userId)
-							if try query.count() > 0 {
+							if let memberToKick = try query.first() {
 								try bot.kickChatMember(chatId: chatId, userId: userId, untilDate: Date().addingTimeInterval(120))
+								try bot.deleteMessage(inChat: chatId, messageId: memberToKick.verificationMessageId)
 								try query.delete()
 							}
 						} catch let error {
