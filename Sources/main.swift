@@ -63,7 +63,7 @@ do {
 					try bot.restrictChatMember(
 						chatId: message.chatId,
 						userId: newMember.id,
-						untilDate: Date(timeIntervalSince1970: 0),
+						untilDate: Date().addingTimeInterval(60 * 6),
 						canSendMessages: false,
 						canSendMediaMessages: false,
 						canSendOtherMessages: false,
