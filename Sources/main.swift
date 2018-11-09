@@ -46,6 +46,14 @@ do {
 
 			if let newMember = message.newChatMember {
 				do {
+					try bot.restrictChatMember(
+						chatId: message.chatId,
+						userId: newMember.id,
+						untilDate: Date(timeIntervalSince1970: 0),
+						canSendMessages: false,
+						canSendMediaMessages: false,
+						canSendOtherMessages: false,
+						canSendWebPagePreviews: false)
 					let pendingMemberTable = try mysql().table(PendingMember.self)
 					try pendingMemberTable.where(\PendingMember.id == newMember.id).delete()
 					let verificationMessage = try bot.send(
@@ -60,14 +68,6 @@ do {
 						verificationMessageId: verificationMessage.messageId,
 						newMemberMessageId: message.messageId,
 						chatId: verificationMessage.chatId))
-					try bot.restrictChatMember(
-						chatId: message.chatId,
-						userId: newMember.id,
-						untilDate: Date(timeIntervalSince1970: 0),
-						canSendMessages: false,
-						canSendMediaMessages: false,
-						canSendOtherMessages: false,
-						canSendWebPagePreviews: false)
 					func kickMemberIfNeeded(chatId: Int, userId: Int) {
 						do {
 							let query = try mysql().table(PendingMember.self)
