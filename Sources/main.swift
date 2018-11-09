@@ -104,11 +104,13 @@ do {
 					DispatchQueue(label: "com.shaneqi.cocoarobot.verifier.\(message.chatId).\(newMember.id)").async {
 						#if os(Linux)
 						_ = Timer.scheduledTimer(withTimeInterval: 60 * 5, repeats: false) { _ in
+							Logger.default.log("Kicking: member \(newMember.displayName) from \(message.chatId)", bot: bot)
 							kickMemberIfNeeded(chatId: message.chatId, userId: newMember.id)
 						}
 						#else
 						if #available(OSX 10.12, *) {
 							_ = Timer.scheduledTimer(withTimeInterval: 60 * 5, repeats: false) { _ in
+								Logger.default.log("Kicking: member \(newMember.displayName) from \(message.chatId)", bot: bot)
 								kickMemberIfNeeded(chatId: message.chatId, userId: newMember.id)
 							}
 						}
