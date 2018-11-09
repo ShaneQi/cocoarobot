@@ -1,8 +1,9 @@
 #!/bin/bash
 docker run \
 -d \
+--restart unless-stopped \
 --name cocoarobot \
---link mysql:mysql \
+--network GoldenArches \
 -v `pwd`:/cocoarobot \
 -w /cocoarobot \
 shaneqi/cocoarobot:latest \
