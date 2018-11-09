@@ -44,6 +44,25 @@ do {
 				return
 			}
 
+			var isFiltered = false
+			if let senderId = message.from?.id {
+				do {
+					let pendingMemberTable = try mysql().table(PendingMember.self)
+					let query = pendingMemberTable.where(\PendingMember.id == senderId)
+					if try query.count() > 0 {
+						isFiltered = true
+						try bot.deleteMessage(inChat: message.chatId, messageId: message.messageId)
+					}
+					return
+				} catch let error {
+					Logger.default.log("Failed to filter message due to: \(error)", bot: bot)
+				}
+			}
+			guard !isFiltered else {
+				Logger.default.log("Filtered message: \(message)", bot: bot)
+				return
+			}
+
 			if let newMember = message.newChatMember {
 				do {
 					try bot.restrictChatMember(
