@@ -44,23 +44,18 @@ do {
 				return
 			}
 
-			var isFiltered = false
 			if let senderId = message.from?.id {
 				do {
 					let pendingMemberTable = try mysql().table(PendingMember.self)
 					let query = pendingMemberTable.where(\PendingMember.id == senderId)
 					if try query.count() > 0 {
-						isFiltered = true
-						try bot.deleteMessage(inChat: message.chatId, messageId: message.messageId)
+						Logger.default.log("Filtered a message.", bot: bot)
+						// RETURN POINT
+						return
 					}
-					return
 				} catch let error {
 					Logger.default.log("Failed to filter message due to: \(error)", bot: bot)
 				}
-			}
-			guard !isFiltered else {
-				Logger.default.log("Filtered message: \(message)", bot: bot)
-				return
 			}
 
 			if let newMember = message.newChatMember {
@@ -72,7 +67,7 @@ do {
 						canSendMessages: false,
 						canSendMediaMessages: false,
 						canSendOtherMessages: false,
-						canSendWebPagePreviews: false)
+						canAddWebPagePreviews: false)
 					let pendingMemberTable = try mysql().table(PendingMember.self)
 					try pendingMemberTable.where(\PendingMember.id == newMember.id).delete()
 					let verificationMessage = try bot.send(
@@ -104,13 +99,13 @@ do {
 					DispatchQueue(label: "com.shaneqi.cocoarobot.verifier.\(message.chatId).\(newMember.id)").async {
 						#if os(Linux)
 						_ = Timer.scheduledTimer(withTimeInterval: 60 * 5, repeats: false) { _ in
-							Logger.default.log("Kicking: member \(newMember.displayName) from \(message.chatId)", bot: bot)
+							Logger.default.log("Kicking: \(newMember.displayName) from \(message.chatId)", bot: bot)
 							kickMemberIfNeeded(chatId: message.chatId, userId: newMember.id)
 						}
 						#else
 						if #available(OSX 10.12, *) {
 							_ = Timer.scheduledTimer(withTimeInterval: 60 * 5, repeats: false) { _ in
-								Logger.default.log("Kicking: member \(newMember.displayName) from \(message.chatId)", bot: bot)
+								Logger.default.log("Kicking: \(newMember.displayName) from \(message.chatId)", bot: bot)
 								kickMemberIfNeeded(chatId: message.chatId, userId: newMember.id)
 							}
 						}
@@ -195,7 +190,7 @@ do {
 							canSendMessages: true,
 							canSendMediaMessages: true,
 							canSendOtherMessages: true,
-							canSendWebPagePreviews: true)
+							canAddWebPagePreviews: true)
 
 						let welcomeMessageTable = db.table(WelcomeMessage.self)
 						let query = welcomeMessageTable.where(\WelcomeMessage.chatId == pendingMember.chatId)
