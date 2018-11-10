@@ -82,15 +82,20 @@ do {
 						verificationMessageId: verificationMessage.messageId,
 						newMemberMessageId: message.messageId,
 						chatId: verificationMessage.chatId))
-					func kickMemberIfNeeded(chatId: Int, userId: Int) {
+					func kickMemberIfNeeded(chatId: Int, user: User) {
 						do {
 							let query = try mysql().table(PendingMember.self)
-								.where(\PendingMember.chatId == chatId && \PendingMember.id == userId)
+								.where(\PendingMember.chatId == chatId && \PendingMember.id == user.id)
 							if let memberToKick = try query.first() {
-								try bot.kickChatMember(chatId: chatId, userId: userId, untilDate: Date().addingTimeInterval(120))
-								try bot.deleteMessage(inChat: chatId, messageId: memberToKick.verificationMessageId)
-								try bot.deleteMessage(inChat: chatId, messageId: memberToKick.newMemberMessageId)
+								do {
+									try bot.deleteMessage(inChat: chatId, messageId: memberToKick.verificationMessageId)
+									try bot.deleteMessage(inChat: chatId, messageId: memberToKick.newMemberMessageId)
+								} catch let error {
+									Logger.default.log("Failed to delete unverified member's verification/join message due to: \(error)", bot: bot)
+								}
 								try query.delete()
+								try bot.kickChatMember(chatId: chatId, userId: user.id, untilDate: Date().addingTimeInterval(120))
+								Logger.default.log("Kicking: \(user.displayName) from \(message.chatId)", bot: bot)
 							}
 						} catch let error {
 							Logger.default.log("Failed to kick unverified member due to: \(error)", bot: bot)
@@ -99,14 +104,12 @@ do {
 					DispatchQueue(label: "com.shaneqi.cocoarobot.verifier.\(message.chatId).\(newMember.id)").async {
 						#if os(Linux)
 						_ = Timer.scheduledTimer(withTimeInterval: 60 * 5, repeats: false) { _ in
-							Logger.default.log("Kicking: \(newMember.displayName) from \(message.chatId)", bot: bot)
-							kickMemberIfNeeded(chatId: message.chatId, userId: newMember.id)
+							kickMemberIfNeeded(chatId: message.chatId, user: newMember)
 						}
 						#else
 						if #available(OSX 10.12, *) {
 							_ = Timer.scheduledTimer(withTimeInterval: 60 * 5, repeats: false) { _ in
-								Logger.default.log("Kicking: \(newMember.displayName) from \(message.chatId)", bot: bot)
-								kickMemberIfNeeded(chatId: message.chatId, userId: newMember.id)
+								kickMemberIfNeeded(chatId: message.chatId, user: newMember)
 							}
 						}
 						#endif
