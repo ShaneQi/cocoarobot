@@ -20,8 +20,8 @@ extension String {
 		let fromIndex = index(startIndex, offsetBy: start)
 		let toIndex = index(startIndex, offsetBy: end)
 		var copy = self
-		copy.removeSubrange(startIndex..<fromIndex)
 		copy.removeSubrange(toIndex..<endIndex)
+		copy.removeSubrange(startIndex..<fromIndex)
 		return copy
 	}
 
