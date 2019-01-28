@@ -49,6 +49,7 @@ do {
 					let pendingMemberTable = try mysql().table(PendingMember.self)
 					let query = pendingMemberTable.where(\PendingMember.id == senderId)
 					if try query.count() > 0 {
+						try bot.deleteMessage(inChat: message.chatId, messageId: message.messageId)
 						Logger.default.log("Filtered a message.", bot: bot)
 						// RETURN POINT
 						return
