@@ -102,14 +102,34 @@ do {
 							Logger.default.log("Failed to kick unverified member due to: \(error)", bot: bot)
 						}
 					}
+
+					let name = [newMember.firstName, newMember.lastName].compactMap({ $0 }).joined(separator: "Ï").lowercased()
+					var doesHitBlackList = true
+					for words in blackListWords {
+						var containsAllWords = true
+						for word in words where !name.contains(word.lowercased()) {
+							containsAllWords = false
+							break
+						}
+						if !containsAllWords {
+							doesHitBlackList = false
+							break
+						}
+					}
+					if doesHitBlackList {
+						Logger.default.log("\(name) hit blacklist.", bot: bot)
+					}
+					let durationToWaitForVerification: Double = doesHitBlackList ? 5 : 60 * 5
 					DispatchQueue(label: "com.shaneqi.cocoarobot.verifier.\(message.chatId).\(newMember.id)").async {
 						#if os(Linux)
-						_ = Timer.scheduledTimer(withTimeInterval: 60 * 5, repeats: false) { _ in
+						_ = Timer.scheduledTimer(
+						withTimeInterval: durationToWaitForVerification, repeats: false) { _ in
 							kickMemberIfNeeded(chatId: message.chatId, user: newMember)
 						}
 						#else
 						if #available(OSX 10.12, *) {
-							_ = Timer.scheduledTimer(withTimeInterval: 60 * 5, repeats: false) { _ in
+							_ = Timer.scheduledTimer(
+							withTimeInterval: durationToWaitForVerification, repeats: false) { _ in
 								kickMemberIfNeeded(chatId: message.chatId, user: newMember)
 							}
 						}
