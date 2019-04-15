@@ -23,4 +23,8 @@ final class Logger {
 		}
 	}
 
+	func log(_ errorText: String) {
+		NSLog(errorText)
+	}
+
 }
