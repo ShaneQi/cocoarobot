@@ -61,8 +61,14 @@ do {
 
 			if let newMember = message.newChatMember {
 				do {
-					Logger.default.log("Received new chat member message at \(Date().timeIntervalSince1970).")
-					Logger.default.log("The new chat memeber message's timestamp is \(message.date).")
+					let dateFormatter = DateFormatter()
+					dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+					dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
+					Logger.default.log("Received new chat member message at \(dateFormatter.string(from: Date())).")
+					Logger.default.log("""
+					The new chat memeber message's timestamp is \
+					\(dateFormatter.string(from: Date(timeIntervalSince1970: TimeInterval(message.date)))).
+					""")
 					try bot.restrictChatMember(
 						chatId: message.chatId,
 						userId: newMember.id,
