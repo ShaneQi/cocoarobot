@@ -30,7 +30,7 @@ extension String {
 extension String {
 
 	static let unauthorizedChat = "❌ Service not authorized in this chat."
-	static let welcome = "欢迎加入 iOS/macOS/watchOS/tvOS 开发者群组。"
+	static let welcome = "欢迎加入 iOS/macOS/iPadOS/watchOS/tvOS 开发者群组。"
 	static let newMemberVerification = [
 		welcome,
 		"*发言前请点击下方验证按钮。*\n*若五分钟内无法完成验证，你将会被从此群组中移除。*",
