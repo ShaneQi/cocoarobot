@@ -82,7 +82,7 @@ do {
 					let pendingMemberTable = try mysql().table(PendingMember.self)
 					try pendingMemberTable.where(\PendingMember.id == newMember.id).delete()
 					let verificationMessage = try bot.send(
-						message: "[\(newMember.displayName)](tg://user?id=\(newMember.id)) " + String.newMemberVerification,
+						message: "[\(newMember.displayName)](tg://user?id=\(newMember.id)) " + String.newMemberVerification(forChatId: message.chat.id),
 						to: message.chat,
 						parseMode: .markdown,
 						replyMarkup: InlineKeyboardMarkup(inlineKeyboard: [[
