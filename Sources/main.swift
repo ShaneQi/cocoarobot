@@ -44,6 +44,7 @@ do {
 				return
 			}
 
+			// Remove messages from pending memeber.
 			if let senderId = message.from?.id {
 				do {
 					let pendingMemberTable = try mysql().table(PendingMember.self)
@@ -60,6 +61,7 @@ do {
 			}
 
 			if let newMember = message.newChatMember {
+				// Auditing new member.
 				do {
 					let dateFormatter = DateFormatter()
 					dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
@@ -148,12 +150,13 @@ do {
 					Logger.default.log("Failed to complete verification request due to: \(error)", bot: bot)
 				}
 			} else if message.leftChatMember != nil {
+				// Removing leaving group message.
 				do {
 					try bot.deleteMessage(inChat: message.chatId, messageId: message.messageId)
 				} catch let error {
 					Logger.default.log("Failed to delete left chat member message due to: \(error)", bot: bot)
 				}
-			} else if let entities = message.entities {
+			} else if let entities = message.entities, interactiveChats.contains(message.chat.id) {
 				entities.forEach { entity in
 					switch entity.type {
 					case .botCommand:
@@ -230,10 +233,10 @@ do {
 							try? bot.deleteMessage(inChat: previousWelcomeMessage.chatId, messageId: previousWelcomeMessage.id)
 							try query.delete()
 						}
-						let text = [String.welcome + "\n",
-									String.commandList + "\n",
+						let text = [callbackQuery.message.flatMap({ String.welcome[$0.chat.id] }),
+									callbackQuery.message.flatMap({ String.commandList[$0.chat.id] }),
 									String.about
-							].joined(separator: "\n")
+							].compactMap({ $0 }).joined(separator: "\n\n")
 						let newWelcomeMessage = try bot.send(
 							message: text, to: pendingMember.chatId, parseMode: .markdown,
 							disableWebPagePreview: true)
