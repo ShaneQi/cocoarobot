@@ -8,7 +8,7 @@ let package = Package(
 		.executable(name: "cocoarobot", targets: ["cocoarobot"])
 	],
 	dependencies: [
-		.package(url: "https://github.com/shaneqi/ZEGBot.git", from: Version(4, 2, 0)),
+		.package(url: "https://github.com/shaneqi/ZEGBot.git", .branch("cocoarobot")),
 		.package(url: "https://github.com/PerfectlySoft/Perfect-MySQL.git", from: Version(3, 0, 0))
 	],
 	targets: [
