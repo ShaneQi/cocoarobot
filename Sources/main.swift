@@ -84,7 +84,8 @@ do {
 						to: message.chat,
 						parseMode: .markdown,
 						replyMarkup: InlineKeyboardMarkup(inlineKeyboard: [[
-							InlineKeyboardButton(text: String.newMemberVerificationButton, callbackData: verificationKey)
+							InlineKeyboardButton(text: String.newMemberVerificationButton, callbackData: verificationKey),
+							InlineKeyboardButton(text: String.newMemberAdminOverrideButton, callbackData: adminOverrideKey)
 							]]))
 					try pendingMemberTable.insert(PendingMember(
 						id: newMember.id, joinedAt: Date(),
@@ -244,6 +245,28 @@ do {
 					}
 				} catch let error {
 					Logger.default.log("Failed to finish verification due to: \(error)", bot: bot)
+				}
+			case adminOverrideKey?:
+				do {
+					
+					func kickMemberIfNeeded(chatId: Int, user: User) throws {
+						let query = try mysql().table(PendingMember.self)
+							.where(\PendingMember.chatId == chatId && \PendingMember.id == user.id)
+						if let memberToKick = try query.first() {
+							do {
+								try bot.deleteMessage(inChat: chatId, messageId: memberToKick.verificationMessageId)
+								try bot.deleteMessage(inChat: chatId, messageId: memberToKick.newMemberMessageId)
+							} catch let error {
+								Logger.default.log("Failed to delete unverified member's verification/join message due to: \(error)", bot: bot)
+							}
+							try query.delete()
+							try bot.kickChatMember(chatId: chatId, userId: user.id, untilDate: Date().addingTimeInterval(120))
+							Logger.default.log("Kicking: \(user.displayName) from \(message.chatId)", bot: bot)
+						}
+					}
+
+				} catch let error {
+					Logger.default.log("Failed to admin overriode new member due to: \(error)", bot: bot)
 				}
 			default:
 				break
