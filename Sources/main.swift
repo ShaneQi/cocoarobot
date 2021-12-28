@@ -250,7 +250,7 @@ do {
 				do {
 					let allegedAdminId = callbackQuery.from.id
 					guard let message = callbackQuery.message else {
-						Logger.default.log("Alleged admin (\(allegedAdminId)) failed to override kicking, because didn't find the verification message.", bot: bot)
+						Logger.default.log("Alleged admin (\(allegedAdminId)) failed to admin override new member due to: didn't find the verification message.", bot: bot)
 						break
 					}
 					let chatId = message.chat.id
@@ -267,16 +267,16 @@ do {
 							}
 							try query.delete()
 							try bot.kickChatMember(chatId: chatId, userId: memberToKick.id, untilDate: Date().addingTimeInterval(120))
-							Logger.default.log("Admin (\(adminId)) override kicking: \(memberToKick.id) from \(chatId)", bot: bot)
+							Logger.default.log("Admin (\(adminId)) overriding new member: \(memberToKick.id) from \(chatId)", bot: bot)
 							try bot.answerCallbackQuery(callbackQueryId: callbackQuery.id, text: String.newMemberAdminOverrideSuccess)
 						} else {
-							Logger.default.log("Admin (\(adminId)) failed to override kicking someone from \(chatId), because didn't find the pending member.", bot: bot)
+							Logger.default.log("Admin (\(adminId)) failed to admin override a new member from \(chatId) due to: didn't find the pending member.", bot: bot)
 						}
 					} else {
 						do {
 							try bot.answerCallbackQuery(callbackQueryId: callbackQuery.id, text: String.newMemberAdminOverrideWarning)
 						} catch {
-							Logger.default.log("Failed to send admin override warning due to: \(error)", bot: bot)
+							Logger.default.log("Failed to send admin override new member warning due to: \(error)", bot: bot)
 						}
 					}
 				} catch let error {
