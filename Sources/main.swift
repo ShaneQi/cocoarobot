@@ -84,7 +84,8 @@ do {
 						to: message.chat,
 						parseMode: .markdown,
 						replyMarkup: InlineKeyboardMarkup(inlineKeyboard: [[
-							InlineKeyboardButton(text: String.newMemberVerificationButton, callbackData: verificationKey)
+							InlineKeyboardButton(text: String.newMemberVerificationButton, callbackData: verificationKey),
+							InlineKeyboardButton(text: String.newMemberAdminOverrideButton, callbackData: adminOverrideKey)
 							]]))
 					try pendingMemberTable.insert(PendingMember(
 						id: newMember.id, joinedAt: Date(),
@@ -244,6 +245,42 @@ do {
 					}
 				} catch let error {
 					Logger.default.log("Failed to finish verification due to: \(error)", bot: bot)
+				}
+			case adminOverrideKey?:
+				do {
+					let allegedAdminId = callbackQuery.from.id
+					guard let message = callbackQuery.message else {
+						Logger.default.log("Alleged admin (\(allegedAdminId)) failed to admin override new member due to: didn't find the verification message.", bot: bot)
+						break
+					}
+					let chatId = message.chat.id
+					let admins = try bot.getChatAdministrators(ofChatWithId: chatId)
+					if admins.contains(where: { $0.user.id == allegedAdminId }) {
+						let adminId = allegedAdminId
+						let query = try mysql().table(PendingMember.self).where(\PendingMember.verificationMessageId == message.messageId)
+						if let memberToKick = try query.first() {
+							do {
+								try bot.deleteMessage(inChat: chatId, messageId: memberToKick.verificationMessageId)
+								try bot.deleteMessage(inChat: chatId, messageId: memberToKick.newMemberMessageId)
+							} catch let error {
+								Logger.default.log("Failed to delete unverified member's verification/join message due to: \(error)", bot: bot)
+							}
+							try query.delete()
+							try bot.kickChatMember(chatId: chatId, userId: memberToKick.id, untilDate: Date().addingTimeInterval(120))
+							Logger.default.log("Admin (\(adminId)) overriding new member: \(memberToKick.id) from \(chatId)", bot: bot)
+							try bot.answerCallbackQuery(callbackQueryId: callbackQuery.id, text: String.newMemberAdminOverrideSuccess)
+						} else {
+							Logger.default.log("Admin (\(adminId)) failed to admin override a new member from \(chatId) due to: didn't find the pending member.", bot: bot)
+						}
+					} else {
+						do {
+							try bot.answerCallbackQuery(callbackQueryId: callbackQuery.id, text: String.newMemberAdminOverrideWarning)
+						} catch {
+							Logger.default.log("Failed to send admin override new member warning due to: \(error)", bot: bot)
+						}
+					}
+				} catch let error {
+					Logger.default.log("Failed to admin override new member due to: \(error)", bot: bot)
 				}
 			default:
 				break
