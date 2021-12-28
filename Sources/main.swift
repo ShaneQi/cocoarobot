@@ -248,10 +248,16 @@ do {
 				}
 			case adminOverrideKey?:
 				do {
-					
-					func kickMemberIfNeeded(chatId: Int, user: User) throws {
-						let query = try mysql().table(PendingMember.self)
-							.where(\PendingMember.chatId == chatId && \PendingMember.id == user.id)
+					let allegedAdminId = callbackQuery.from.id
+					guard let message = callbackQuery.message else {
+						Logger.default.log("Alleged admin (\(allegedAdminId)) failed to override kicking, because didn't find the verification message.", bot: bot)
+						break
+					}
+					let chatId = message.chat.id
+					let admins = try bot.getChatAdministrators(ofChatWithId: chatId)
+					if admins.contains(where: { $0.user.id == allegedAdminId }) {
+						let adminId = allegedAdminId
+						let query = try mysql().table(PendingMember.self).where(\PendingMember.verificationMessageId == message.messageId)
 						if let memberToKick = try query.first() {
 							do {
 								try bot.deleteMessage(inChat: chatId, messageId: memberToKick.verificationMessageId)
@@ -260,13 +266,21 @@ do {
 								Logger.default.log("Failed to delete unverified member's verification/join message due to: \(error)", bot: bot)
 							}
 							try query.delete()
-							try bot.kickChatMember(chatId: chatId, userId: user.id, untilDate: Date().addingTimeInterval(120))
-							Logger.default.log("Kicking: \(user.displayName) from \(message.chatId)", bot: bot)
+							try bot.kickChatMember(chatId: chatId, userId: memberToKick.id, untilDate: Date().addingTimeInterval(120))
+							Logger.default.log("Admin (\(adminId)) override kicking: \(memberToKick.id) from \(chatId)", bot: bot)
+							try bot.answerCallbackQuery(callbackQueryId: callbackQuery.id, text: String.newMemberAdminOverrideSuccess)
+						} else {
+							Logger.default.log("Admin (\(adminId)) failed to override kicking someone from \(chatId), because didn't find the pending member.", bot: bot)
+						}
+					} else {
+						do {
+							try bot.answerCallbackQuery(callbackQueryId: callbackQuery.id, text: String.newMemberAdminOverrideWarning)
+						} catch {
+							Logger.default.log("Failed to send admin override warning due to: \(error)", bot: bot)
 						}
 					}
-
 				} catch let error {
-					Logger.default.log("Failed to admin overriode new member due to: \(error)", bot: bot)
+					Logger.default.log("Failed to admin override new member due to: \(error)", bot: bot)
 				}
 			default:
 				break
