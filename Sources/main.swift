@@ -47,7 +47,7 @@ do {
 				} catch let error {
 					Logger.default.log("Failed to send unauthorized service alert due to: \(error)", bot: bot)
 				}
-				return
+				break
 			}
 
 			if let senderId = message.from?.id {
@@ -62,8 +62,7 @@ do {
 					if result.count > 0 {
 						try bot.deleteMessage(inChat: message.chatId, messageId: message.messageId)
 						Logger.default.log("Filtered a message.", bot: bot)
-						// RETURN POINT
-						return
+						break
 					}
 				} catch let error {
 					Logger.default.log("Failed to filter message due to: \(error)", bot: bot)
@@ -117,7 +116,7 @@ do {
 								try? mysql.close().wait()
 							}
 							let result = try mysql.query(
-								"SELECT FROM PendingMember WHERE chatId = ? AND id = ?;",
+								"SELECT * FROM PendingMember WHERE chatId = ? AND id = ?;",
 								[MySQLData(int: chatId), MySQLData(int: user.id)]).wait()
 							if let memberToKick = result.first,
 							   let verificationMessageId = memberToKick.column("verificationMessageId")?.int,
@@ -203,7 +202,7 @@ do {
 									try? mysql.close().wait()
 								}
 								let date = Date().firstMomentOfToday
-								let result = try mysql.query("SELECT FROM CrashCounter WHERE date = ?;", [MySQLData(date: date)]).wait().first
+								let result = try mysql.query("SELECT * FROM CrashCounter WHERE date = ?;", [MySQLData(date: date)]).wait().first
 								let previousCount = result?.column("count")?.int
 								let newCount = (previousCount ?? 0) + 1
 								_ = try mysql.query("REPLACE INTO CrashCounter VALUES (?, ?);", [MySQLData(int: newCount), MySQLData(date: date)]).wait()
@@ -213,7 +212,7 @@ do {
 									parseMode: .markdown)
 								try bot.send(stickerAt: .telegramServer(fileId: "CAADBQADFgADeW-oDo2q3CV0lvJBAg"), to: message)
 							} catch let error {
-								Logger.default.log("Failed to count crash die to: \(error)", bot: bot)
+								Logger.default.log("Failed to count crash due to: \(error)", bot: bot)
 							}
 						case "/admin", "/admin@cocoarobot":
 							do {
@@ -240,7 +239,7 @@ do {
 					defer {
 						try? mysql.close().wait()
 					}
-					let result = try mysql.query("SELECT FROM PendingMember WHERE id = ?;", [MySQLData(int: callbackQuery.from.id)]).wait()
+					let result = try mysql.query("SELECT * FROM PendingMember WHERE id = ?;", [MySQLData(int: callbackQuery.from.id)]).wait()
 					if let row = result.first {
 						_ = try mysql.query("DELETE FROM PendingMember WHERE id = ?;", [MySQLData(int: callbackQuery.from.id)]).wait()
 						try bot.answerCallbackQuery(callbackQueryId: callbackQuery.id, text: String.verificationSuccess)
@@ -255,11 +254,10 @@ do {
 								canSendMediaMessages: true,
 								canSendOtherMessages: true,
 								canAddWebPagePreviews: true)
-							let result = try mysql.query("SELECT FROM WelcomeMessage WHERE chatId = ?;", [MySQLData(int: chatId)]).wait()
+							let result = try mysql.query("SELECT * FROM WelcomeMessage WHERE chatId = ?;", [MySQLData(int: chatId)]).wait()
 							if let row = result.first,
 							   let previousWelcomeMessageId = row.column("id")?.int {
 								try? bot.deleteMessage(inChat: chatId, messageId: previousWelcomeMessageId)
-								_ = try mysql.query("DELETE FROM WelcomeMessage WHERE chatId = ?;", [MySQLData(int: chatId)]).wait()
 							}
 							let text = [String.welcome + "\n",
 										String.commandList + "\n",
