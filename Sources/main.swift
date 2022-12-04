@@ -10,16 +10,17 @@ import ZEGBot
 import Foundation
 import MySQLNIO
 
-let bot = ZEGBot(token: "")
+let bot = ZEGBot(token: token)
 let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
 
-func mysql() throws -> MySQLConnection {
+func mysqlConnection() throws -> MySQLConnection {
 	let eventLoop = eventLoopGroup.next()
 	let conn = try MySQLConnection.connect(
-		to: .makeAddressResolvingHost(dbHost, port: dbPort),
+		to: .init(ipAddress: "0.0.0.0", port: 3306),
 		username: dbUser,
 		database: dbName,
 		password: dbPassword,
+		tlsConfiguration: .forClient(certificateVerification: .none),
 		on: eventLoop
 	).wait()
 	return conn
@@ -51,7 +52,11 @@ do {
 
 			if let senderId = message.from?.id {
 				do {
-					let result = try mysql().query(
+					let mysql = try mysqlConnection()
+					defer {
+						try? mysql.close().wait()
+					}
+					let result = try mysql.query(
 						"SELECT * FROM PendingMember WHERE id = ?;",
 						[MySQLData(int: senderId)]).wait()
 					if result.count > 0 {
@@ -67,7 +72,10 @@ do {
 
 			if let newMember = message.newChatMember {
 				do {
-					let mysql = try mysql()
+					let mysql = try mysqlConnection()
+					defer {
+						try? mysql.close().wait()
+					}
 					let dateFormatter = DateFormatter()
 					dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
 					dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
@@ -104,6 +112,10 @@ do {
 						]).wait()
 					func kickMemberIfNeeded(chatId: Int, user: User) {
 						do {
+							let mysql = try mysqlConnection()
+							defer {
+								try? mysql.close().wait()
+							}
 							let result = try mysql.query(
 								"SELECT FROM PendingMember WHERE chatId = ? AND id = ?;",
 								[MySQLData(int: chatId), MySQLData(int: user.id)]).wait()
@@ -186,7 +198,10 @@ do {
 							}
 						case "/crash", "/crash@cocoarobot":
 							do {
-								let mysql = try mysql()
+								let mysql = try mysqlConnection()
+								defer {
+									try? mysql.close().wait()
+								}
 								let date = Date().firstMomentOfToday
 								let result = try mysql.query("SELECT FROM CrashCounter WHERE date = ?;", [MySQLData(date: date)]).wait().first
 								let previousCount = result?.column("count")?.int
@@ -221,7 +236,10 @@ do {
 			switch callbackQuery.data {
 			case verificationKey?:
 				do {
-					let mysql = try mysql()
+					let mysql = try mysqlConnection()
+					defer {
+						try? mysql.close().wait()
+					}
 					let result = try mysql.query("SELECT FROM PendingMember WHERE id = ?;", [MySQLData(int: callbackQuery.from.id)]).wait()
 					if let row = result.first {
 						_ = try mysql.query("DELETE FROM PendingMember WHERE id = ?;", [MySQLData(int: callbackQuery.from.id)]).wait()
@@ -268,7 +286,10 @@ do {
 					let chatId = message.chat.id
 					let admins = try bot.getChatAdministrators(ofChatWithId: chatId)
 					if admins.contains(where: { $0.user.id == allegedAdminId }) {
-						let mysql = try mysql()
+						let mysql = try mysqlConnection()
+						defer {
+							try? mysql.close().wait()
+						}
 						let adminId = allegedAdminId
 						let result = try mysql.query(
 							"SELECT * FROM PendingMember WHERE verificationMessageId = ?;",
