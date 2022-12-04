@@ -68,8 +68,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/shaneqi/ZEGBot.git",
       "state" : {
-        "revision" : "c211bcf561ea839ae62450d486cd4f799a6bcc9c",
-        "version" : "4.2.7"
+        "revision" : "139ac628fc415ae44edb5f36df218097e63e8113",
+        "version" : "4.2.8"
       }
     }
   ],

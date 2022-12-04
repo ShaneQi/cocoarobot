@@ -11,7 +11,7 @@ let package = Package(
 		.executable(name: "cocoarobot", targets: ["cocoarobot"])
 	],
 	dependencies: [
-		.package(url: "https://github.com/shaneqi/ZEGBot.git", from: "4.2.7"),
+		.package(url: "https://github.com/shaneqi/ZEGBot.git", from: "4.2.8"),
         .package(url: "https://github.com/vapor/mysql-nio.git", from: "1.0.0")
 	],
 	targets: [
