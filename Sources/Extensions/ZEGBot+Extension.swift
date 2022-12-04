@@ -7,18 +7,18 @@
 
 import ZEGBot
 
-extension Sticker {
-
-	init(id: String) {
-		self.fileId = id
-		self.emoji = nil
-		self.width = 0
-		self.height = 0
-		self.thumb = nil
-		self.fileSize = nil
-	}
-
-}
+//extension Sticker {
+//
+//	init(id: String) {
+//		self.fileId = id
+//		self.emoji = nil
+//		self.width = 0
+//		self.height = 0
+//		self.thumb = nil
+//		self.fileSize = nil
+//	}
+//
+//}
 
 extension Int: Sendable {
 
