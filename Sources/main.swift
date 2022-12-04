@@ -51,10 +51,10 @@ do {
 
 			if let senderId = message.from?.id {
 				do {
-					let query = try mysql().query(
+					let result = try mysql().query(
 						"SELECT * FROM PendingMember WHERE id = ?;",
 						[MySQLData(int: senderId)]).wait()
-					if query.count > 0 {
+					if result.count > 0 {
 						try bot.deleteMessage(inChat: message.chatId, messageId: message.messageId)
 						Logger.default.log("Filtered a message.", bot: bot)
 						// RETURN POINT
@@ -73,9 +73,9 @@ do {
 					dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
 					Logger.default.log("Received new chat member message at \(dateFormatter.string(from: Date())).")
 					Logger.default.log("""
-					 The new chat memeber message's timestamp is \
-					 \(dateFormatter.string(from: Date(timeIntervalSince1970: TimeInterval(message.date)))).
-					 """)
+					The new chat memeber message's timestamp is \
+					\(dateFormatter.string(from: Date(timeIntervalSince1970: TimeInterval(message.date)))).
+					""")
 					try bot.restrictChatMember(
 						chatId: message.chatId,
 						userId: newMember.id,
@@ -116,7 +116,9 @@ do {
 								} catch let error {
 									Logger.default.log("Failed to delete unverified member's verification/join message due to: \(error)", bot: bot)
 								}
-								_ = try mysql.query("DELETE FROM PendingMember WHERE id = ?;", [MySQLData(int: user.id)]).wait()
+								_ = try mysql.query(
+									"DELETE FROM PendingMember WHERE chatId = ? AND id = ?;",
+									[MySQLData(int: chatId), MySQLData(int: user.id)]).wait()
 								try bot.kickChatMember(chatId: chatId, userId: user.id, untilDate: Date().addingTimeInterval(120))
 								Logger.default.log("Kicking: \(user.displayName) from \(message.chatId)", bot: bot)
 							}
@@ -143,19 +145,17 @@ do {
 					}
 					let durationToWaitForVerification: Double = doesHitBlackList ? 5 : 60 * 5
 					DispatchQueue(label: "com.shaneqi.cocoarobot.verifier.\(message.chatId).\(newMember.id)").async {
-#if os(Linux)
+						#if os(Linux)
 						_ = Timer.scheduledTimer(
 							withTimeInterval: durationToWaitForVerification, repeats: false) { _ in
 								kickMemberIfNeeded(chatId: message.chatId, user: newMember)
 							}
-#else
-						if #available(OSX 10.12, *) {
-							_ = Timer.scheduledTimer(
-								withTimeInterval: durationToWaitForVerification, repeats: false) { _ in
-									kickMemberIfNeeded(chatId: message.chatId, user: newMember)
-								}
-						}
-#endif
+						#else
+						_ = Timer.scheduledTimer(
+							withTimeInterval: durationToWaitForVerification, repeats: false) { _ in
+								kickMemberIfNeeded(chatId: message.chatId, user: newMember)
+							}
+						#endif
 						RunLoop.current.run()
 					}
 				} catch let error {
@@ -200,7 +200,6 @@ do {
 							} catch let error {
 								Logger.default.log("Failed to count crash die to: \(error)", bot: bot)
 							}
-							break
 						case "/admin", "/admin@cocoarobot":
 							do {
 								let admins = try bot.getChatAdministrators(ofChatWithId: message.chatId)
@@ -220,7 +219,7 @@ do {
 			}
 		case .callbackQuery(_, let callbackQuery):
 			switch callbackQuery.data {
-			case "asdas"?:
+			case verificationKey?:
 				do {
 					let mysql = try mysql()
 					let result = try mysql.query("SELECT FROM PendingMember WHERE id = ?;", [MySQLData(int: callbackQuery.from.id)]).wait()
@@ -242,6 +241,7 @@ do {
 							if let row = result.first,
 							   let previousWelcomeMessageId = row.column("id")?.int {
 								try? bot.deleteMessage(inChat: chatId, messageId: previousWelcomeMessageId)
+								_ = try mysql.query("DELETE FROM WelcomeMessage WHERE chatId = ?;", [MySQLData(int: chatId)]).wait()
 							}
 							let text = [String.welcome + "\n",
 										String.commandList + "\n",
@@ -258,7 +258,7 @@ do {
 				} catch let error {
 					Logger.default.log("Failed to finish verification due to: \(error)", bot: bot)
 				}
-			case "adminOverrideKey"?:
+			case adminOverrideKey?:
 				do {
 					let allegedAdminId = callbackQuery.from.id
 					guard let message = callbackQuery.message else {
@@ -310,7 +310,6 @@ do {
 		}
 		}
 	}
-
 } catch let error {
 	Logger.default.log("Exit due to: \(error)", bot: bot)
 }
