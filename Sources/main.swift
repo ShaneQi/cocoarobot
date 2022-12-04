@@ -8,15 +8,22 @@
 
 import ZEGBot
 import Foundation
+import MySQLNIO
 
 let bot = ZEGBot(token: "")
-//CRUDLogging.queryLogDestinations = []
-//CRUDLogging.errorLogDestinations = []
+let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
 
-//func mysql() throws -> Database<MySQLDatabaseConfiguration> {
-//	return Database(configuration: try MySQLDatabaseConfiguration(
-//		database: dbName, host: dbHost, port: dbPort, username: dbUser, password: dbPassword))
-//}
+func mysql() throws -> MySQLConnection {
+	let eventLoop = eventLoopGroup.next()
+	let conn = try MySQLConnection.connect(
+		to: .makeAddressResolvingHost("my.mysql.server", port: 5432),
+		username: "test_username",
+		database: "test_database",
+		password: "test_password",
+		on: eventLoop
+	).wait()
+	return conn
+}
 
 //do {
 //	let db = try mysql()
@@ -28,124 +35,132 @@ let bot = ZEGBot(token: "")
 //}
 
 do {
-	try bot.run { update, bot in
-
-        switch update.first! {
+	try bot.run { updates, bot in
+		for update in updates {
+		switch update {
 		case let .message(_, message):
-//			guard authorizedChats.contains(message.chat.id) else {
-//				do {
-//					try bot.send(message: String.unauthorizedChat, to: message.chat)
-//					Logger.default.log("Unauthorized service was requested by: (\(message.chat)).", bot: bot)
-//				} catch let error {
-//					Logger.default.log("Failed to send unauthorized service alert due to: \(error)", bot: bot)
-//				}
-//				return
-//			}
+			guard authorizedChats.contains(message.chat.id) else {
+				do {
+					try bot.send(message: String.unauthorizedChat, to: message.chat)
+					Logger.default.log("Unauthorized service was requested by: (\(message.chat)).", bot: bot)
+				} catch let error {
+					Logger.default.log("Failed to send unauthorized service alert due to: \(error)", bot: bot)
+				}
+				return
+			}
 
 			if let senderId = message.from?.id {
-//				do {
-//					let pendingMemberTable = try mysql().table(PendingMember.self)
-//					let query = pendingMemberTable.where(\PendingMember.id == senderId)
-//					if try query.count() > 0 {
-//						try bot.deleteMessage(inChat: message.chatId, messageId: message.messageId)
-//						Logger.default.log("Filtered a message.", bot: bot)
-//						// RETURN POINT
-//						return
-//					}
-//				} catch let error {
-//					Logger.default.log("Failed to filter message due to: \(error)", bot: bot)
-//				}
+				do {
+					let query = try mysql().query(
+						"SELECT * FROM PendingMember WHERE id = ?;",
+						[MySQLData(int: senderId)]).wait()
+					if query.count > 0 {
+						try bot.deleteMessage(inChat: message.chatId, messageId: message.messageId)
+						Logger.default.log("Filtered a message.", bot: bot)
+						// RETURN POINT
+						return
+					}
+				} catch let error {
+					Logger.default.log("Failed to filter message due to: \(error)", bot: bot)
+				}
 			}
 
 			if let newMember = message.newChatMember {
-//				do {
-//					let dateFormatter = DateFormatter()
-//					dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
-//					dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
-//					Logger.default.log("Received new chat member message at \(dateFormatter.string(from: Date())).")
-//					Logger.default.log("""
-//					The new chat memeber message's timestamp is \
-//					\(dateFormatter.string(from: Date(timeIntervalSince1970: TimeInterval(message.date)))).
-//					""")
-//					try bot.restrictChatMember(
-//						chatId: message.chatId,
-//						userId: newMember.id,
-//						untilDate: Date().addingTimeInterval(60 * 6),
-//						canSendMessages: false,
-//						canSendMediaMessages: false,
-//						canSendOtherMessages: false,
-//						canAddWebPagePreviews: false)
-//					let pendingMemberTable = try mysql().table(PendingMember.self)
-//					try pendingMemberTable.where(\PendingMember.id == newMember.id).delete()
-//					let verificationMessage = try bot.send(
-//						message: "[\(newMember.displayName)](tg://user?id=\(newMember.id)) " + String.newMemberVerification,
-//						to: message.chat,
-//						parseMode: .markdown,
-//						replyMarkup: InlineKeyboardMarkup(inlineKeyboard: [[
-//							InlineKeyboardButton(text: String.newMemberVerificationButton, callbackData: verificationKey),
-//							InlineKeyboardButton(text: String.newMemberAdminOverrideButton, callbackData: adminOverrideKey)
-//							]]))
-//					try pendingMemberTable.insert(PendingMember(
-//						id: newMember.id, joinedAt: Date(),
-//						verificationMessageId: verificationMessage.messageId,
-//						newMemberMessageId: message.messageId,
-//						chatId: verificationMessage.chatId))
-//					func kickMemberIfNeeded(chatId: Int, user: User) {
-//						do {
-//							let query = try mysql().table(PendingMember.self)
-//								.where(\PendingMember.chatId == chatId && \PendingMember.id == user.id)
-//							if let memberToKick = try query.first() {
-//								do {
-//									try bot.deleteMessage(inChat: chatId, messageId: memberToKick.verificationMessageId)
-//									try bot.deleteMessage(inChat: chatId, messageId: memberToKick.newMemberMessageId)
-//								} catch let error {
-//									Logger.default.log("Failed to delete unverified member's verification/join message due to: \(error)", bot: bot)
-//								}
-//								try query.delete()
-//								try bot.kickChatMember(chatId: chatId, userId: user.id, untilDate: Date().addingTimeInterval(120))
-//								Logger.default.log("Kicking: \(user.displayName) from \(message.chatId)", bot: bot)
-//							}
-//						} catch let error {
-//							Logger.default.log("Failed to kick unverified member due to: \(error)", bot: bot)
-//						}
-//					}
-//
-//					let name = [newMember.firstName, newMember.lastName].compactMap({ $0 }).joined(separator: "Ï").lowercased()
-//					var doesHitBlackList = true
-//					for words in blackListWords {
-//						var containsAllWords = true
-//						for word in words where !name.contains(word.lowercased()) {
-//							containsAllWords = false
-//							break
-//						}
-//						if !containsAllWords {
-//							doesHitBlackList = false
-//							break
-//						}
-//					}
-//					if doesHitBlackList {
-//						Logger.default.log("\(name) hit blacklist.", bot: bot)
-//					}
-//					let durationToWaitForVerification: Double = doesHitBlackList ? 5 : 60 * 5
-//					DispatchQueue(label: "com.shaneqi.cocoarobot.verifier.\(message.chatId).\(newMember.id)").async {
-//						#if os(Linux)
-//						_ = Timer.scheduledTimer(
-//						withTimeInterval: durationToWaitForVerification, repeats: false) { _ in
-//							kickMemberIfNeeded(chatId: message.chatId, user: newMember)
-//						}
-//						#else
-//						if #available(OSX 10.12, *) {
-//							_ = Timer.scheduledTimer(
-//							withTimeInterval: durationToWaitForVerification, repeats: false) { _ in
-//								kickMemberIfNeeded(chatId: message.chatId, user: newMember)
-//							}
-//						}
-//						#endif
-//						RunLoop.current.run()
-//					}
-//				} catch let error {
-//					Logger.default.log("Failed to complete verification request due to: \(error)", bot: bot)
-//				}
+				do {
+					let mysql = try mysql()
+					let dateFormatter = DateFormatter()
+					dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+					dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
+					Logger.default.log("Received new chat member message at \(dateFormatter.string(from: Date())).")
+					Logger.default.log("""
+					 The new chat memeber message's timestamp is \
+					 \(dateFormatter.string(from: Date(timeIntervalSince1970: TimeInterval(message.date)))).
+					 """)
+					try bot.restrictChatMember(
+						chatId: message.chatId,
+						userId: newMember.id,
+						untilDate: Date().addingTimeInterval(60 * 6),
+						canSendMessages: false,
+						canSendMediaMessages: false,
+						canSendOtherMessages: false,
+						canAddWebPagePreviews: false)
+					_ = try mysql.query("DELETE FROM PendingMember WHERE id = ?;", [MySQLData(int: newMember.id)]).wait()
+					let verificationMessage = try bot.send(
+						message: "[\(newMember.displayName)](tg://user?id=\(newMember.id)) " + String.newMemberVerification,
+						to: message.chat,
+						parseMode: .markdown,
+						replyMarkup: InlineKeyboardMarkup(inlineKeyboard: [[
+							InlineKeyboardButton(text: String.newMemberVerificationButton, callbackData: verificationKey),
+							InlineKeyboardButton(text: String.newMemberAdminOverrideButton, callbackData: adminOverrideKey)
+						]]))
+					_ = try mysql.query(
+						"INSERT INTO PendingMember VALUES (?, ?, ?, ?, ?);",
+						[
+							MySQLData(int: newMember.id),
+							MySQLData(date: Date()),
+							MySQLData(int: verificationMessage.messageId),
+							MySQLData(int: message.messageId),
+							MySQLData(int: verificationMessage.chatId)
+						]).wait()
+					func kickMemberIfNeeded(chatId: Int, user: User) {
+						do {
+							let result = try mysql.query(
+								"SELECT FROM PendingMember WHERE chatId = ? AND id = ?;",
+								[MySQLData(int: chatId), MySQLData(int: user.id)]).wait()
+							if let memberToKick = result.first,
+							   let verificationMessageId = memberToKick.column("verificationMessageId")?.int,
+							   let newMemberMessageId = memberToKick.column("newMemberMessageId")?.int {
+								do {
+									try bot.deleteMessage(inChat: chatId, messageId: verificationMessageId)
+									try bot.deleteMessage(inChat: chatId, messageId: newMemberMessageId)
+								} catch let error {
+									Logger.default.log("Failed to delete unverified member's verification/join message due to: \(error)", bot: bot)
+								}
+								_ = try mysql.query("DELETE FROM PendingMember WHERE id = ?;", [MySQLData(int: user.id)]).wait()
+								try bot.kickChatMember(chatId: chatId, userId: user.id, untilDate: Date().addingTimeInterval(120))
+								Logger.default.log("Kicking: \(user.displayName) from \(message.chatId)", bot: bot)
+							}
+						} catch let error {
+							Logger.default.log("Failed to kick unverified member due to: \(error)", bot: bot)
+						}
+					}
+
+					let name = [newMember.firstName, newMember.lastName].compactMap({ $0 }).joined(separator: "Ï").lowercased()
+					var doesHitBlackList = true
+					for words in blackListWords {
+						var containsAllWords = true
+						for word in words where !name.contains(word.lowercased()) {
+							containsAllWords = false
+							break
+						}
+						if !containsAllWords {
+							doesHitBlackList = false
+							break
+						}
+					}
+					if doesHitBlackList {
+						Logger.default.log("\(name) hit blacklist.", bot: bot)
+					}
+					let durationToWaitForVerification: Double = doesHitBlackList ? 5 : 60 * 5
+					DispatchQueue(label: "com.shaneqi.cocoarobot.verifier.\(message.chatId).\(newMember.id)").async {
+#if os(Linux)
+						_ = Timer.scheduledTimer(
+							withTimeInterval: durationToWaitForVerification, repeats: false) { _ in
+								kickMemberIfNeeded(chatId: message.chatId, user: newMember)
+							}
+#else
+						if #available(OSX 10.12, *) {
+							_ = Timer.scheduledTimer(
+								withTimeInterval: durationToWaitForVerification, repeats: false) { _ in
+									kickMemberIfNeeded(chatId: message.chatId, user: newMember)
+								}
+						}
+#endif
+						RunLoop.current.run()
+					}
+				} catch let error {
+					Logger.default.log("Failed to complete verification request due to: \(error)", bot: bot)
+				}
 			} else if message.leftChatMember != nil {
 				do {
 					try bot.deleteMessage(inChat: message.chatId, messageId: message.messageId)
@@ -170,23 +185,22 @@ do {
 								Logger.default.log("Failed to send about message due to: \(error)", bot: bot)
 							}
 						case "/crash", "/crash@cocoarobot":
-//							do {
-//								let crashCounterTable = try mysql().table(CrashCounter.self)
-//								let date = Date().firstMomentOfToday
-//								let query = crashCounterTable.where(\CrashCounter.date == date)
-//								let newCount = (try query.first()?.count ?? 0) + 1
-//								try query.delete()
-//								let counter = CrashCounter(count: newCount, date: date)
-//								try crashCounterTable.insert(counter)
-//								try bot.send(
-//									message: String(format: .crashCount, newCount),
-//									to: message,
-//									parseMode: .markdown)
-//								try bot.send(Sticker(id: "CAADBQADFgADeW-oDo2q3CV0lvJBAg"), to: message)
-//							} catch let error {
-//								Logger.default.log("Failed to count crash die to: \(error)", bot: bot)
-//							}
-                            break
+							do {
+								let mysql = try mysql()
+								let date = Date().firstMomentOfToday
+								let result = try mysql.query("SELECT FROM CrashCounter WHERE date = ?;", [MySQLData(date: date)]).wait().first
+								let previousCount = result?.column("count")?.int
+								let newCount = (previousCount ?? 0) + 1
+								_ = try mysql.query("REPLACE INTO CrashCounter VALUES (?, ?);", [MySQLData(int: newCount), MySQLData(date: date)]).wait()
+								try bot.send(
+									message: String(format: .crashCount, newCount),
+									to: message,
+									parseMode: .markdown)
+								try bot.send(stickerAt: .telegramServer(fileId: "CAADBQADFgADeW-oDo2q3CV0lvJBAg"), to: message)
+							} catch let error {
+								Logger.default.log("Failed to count crash die to: \(error)", bot: bot)
+							}
+							break
 						case "/admin", "/admin@cocoarobot":
 							do {
 								let admins = try bot.getChatAdministrators(ofChatWithId: message.chatId)
@@ -207,89 +221,96 @@ do {
 		case .callbackQuery(_, let callbackQuery):
 			switch callbackQuery.data {
 			case "asdas"?:
-//				do {
-//					let db = try mysql()
-//					let pendingMemberTable = db.table(PendingMember.self)
-//					let query = pendingMemberTable.where(\PendingMember.id == callbackQuery.from.id)
-//					if let pendingMember = try query.first() {
-//						try query.delete()
-//						try bot.answerCallbackQuery(callbackQueryId: callbackQuery.id, text: String.verificationSuccess)
-//						try bot.deleteMessage(inChat: pendingMember.chatId, messageId: pendingMember.verificationMessageId)
-//						try bot.restrictChatMember(
-//							chatId: pendingMember.chatId,
-//							userId: pendingMember.id,
-//							untilDate: Date(timeIntervalSince1970: 0),
-//							canSendMessages: true,
-//							canSendMediaMessages: true,
-//							canSendOtherMessages: true,
-//							canAddWebPagePreviews: true)
-//
-//						let welcomeMessageTable = db.table(WelcomeMessage.self)
-//						let query = welcomeMessageTable.where(\WelcomeMessage.chatId == pendingMember.chatId)
-//						if let previousWelcomeMessage = try query.first() {
-//							try? bot.deleteMessage(inChat: previousWelcomeMessage.chatId, messageId: previousWelcomeMessage.id)
-//							try query.delete()
-//						}
-//						let text = [String.welcome + "\n",
-//									String.commandList + "\n",
-//									String.about
-//							].joined(separator: "\n")
-//						let newWelcomeMessage = try bot.send(
-//							message: text, to: pendingMember.chatId, parseMode: .markdown,
-//							disableWebPagePreview: true)
-//						try welcomeMessageTable.insert(WelcomeMessage(
-//							id: newWelcomeMessage.messageId, chatId: newWelcomeMessage.chatId))
-//					} else {
-//						try bot.answerCallbackQuery(callbackQueryId: callbackQuery.id, text: String.verificationWarning)
-//					}
-//				} catch let error {
-//					Logger.default.log("Failed to finish verification due to: \(error)", bot: bot)
-//				}
-                break
+				do {
+					let mysql = try mysql()
+					let result = try mysql.query("SELECT FROM PendingMember WHERE id = ?;", [MySQLData(int: callbackQuery.from.id)]).wait()
+					if let row = result.first {
+						_ = try mysql.query("DELETE FROM PendingMember WHERE id = ?;", [MySQLData(int: callbackQuery.from.id)]).wait()
+						try bot.answerCallbackQuery(callbackQueryId: callbackQuery.id, text: String.verificationSuccess)
+						if let chatId = row.column("chatId")?.int,
+						   let verificationMessageId = row.column("verificationMessageId")?.int {
+							try bot.deleteMessage(inChat: chatId, messageId: verificationMessageId)
+							try bot.restrictChatMember(
+								chatId: chatId,
+								userId: callbackQuery.from.id,
+								untilDate: Date(timeIntervalSince1970: 0),
+								canSendMessages: true,
+								canSendMediaMessages: true,
+								canSendOtherMessages: true,
+								canAddWebPagePreviews: true)
+							let result = try mysql.query("SELECT FROM WelcomeMessage WHERE chatId = ?;", [MySQLData(int: chatId)]).wait()
+							if let row = result.first,
+							   let previousWelcomeMessageId = row.column("id")?.int {
+								try? bot.deleteMessage(inChat: chatId, messageId: previousWelcomeMessageId)
+							}
+							let text = [String.welcome + "\n",
+										String.commandList + "\n",
+										String.about
+							].joined(separator: "\n")
+							let newWelcomeMessage = try bot.send(
+								message: text, to: chatId, parseMode: .markdown,
+								disableWebPagePreview: true)
+							_ = try mysql.query("REPLACE INTO WelcomeMessage VALUES (?, ?);", [MySQLData(int: newWelcomeMessage.messageId), MySQLData(int: newWelcomeMessage.chatId)]).wait()
+						}
+					} else {
+						try bot.answerCallbackQuery(callbackQueryId: callbackQuery.id, text: String.verificationWarning)
+					}
+				} catch let error {
+					Logger.default.log("Failed to finish verification due to: \(error)", bot: bot)
+				}
 			case "adminOverrideKey"?:
-//				do {
-//					let allegedAdminId = callbackQuery.from.id
-//					guard let message = callbackQuery.message else {
-//						Logger.default.log("Alleged admin (\(allegedAdminId)) failed to admin override new member due to: didn't find the verification message.", bot: bot)
-//						break
-//					}
-//					let chatId = message.chat.id
-//					let admins = try bot.getChatAdministrators(ofChatWithId: chatId)
-//					if admins.contains(where: { $0.user.id == allegedAdminId }) {
-//						let adminId = allegedAdminId
-//						let query = try mysql().table(PendingMember.self).where(\PendingMember.verificationMessageId == message.messageId)
-//						if let memberToKick = try query.first() {
-//							do {
-//								try bot.deleteMessage(inChat: chatId, messageId: memberToKick.verificationMessageId)
-//								try bot.deleteMessage(inChat: chatId, messageId: memberToKick.newMemberMessageId)
-//							} catch let error {
-//								Logger.default.log("Failed to delete unverified member's verification/join message due to: \(error)", bot: bot)
-//							}
-//							try query.delete()
-//							try bot.kickChatMember(chatId: chatId, userId: memberToKick.id, untilDate: Date().addingTimeInterval(120))
-//							Logger.default.log("Admin (\(adminId)) overriding new member: \(memberToKick.id) from \(chatId)", bot: bot)
-//							try bot.answerCallbackQuery(callbackQueryId: callbackQuery.id, text: String.newMemberAdminOverrideSuccess)
-//						} else {
-//							Logger.default.log("Admin (\(adminId)) failed to admin override a new member from \(chatId) due to: didn't find the pending member.", bot: bot)
-//						}
-//					} else {
-//						do {
-//							try bot.answerCallbackQuery(callbackQueryId: callbackQuery.id, text: String.newMemberAdminOverrideWarning)
-//						} catch {
-//							Logger.default.log("Failed to send admin override new member warning due to: \(error)", bot: bot)
-//						}
-//					}
-//				} catch let error {
-//					Logger.default.log("Failed to admin override new member due to: \(error)", bot: bot)
-//				}
-                break
+				do {
+					let allegedAdminId = callbackQuery.from.id
+					guard let message = callbackQuery.message else {
+						Logger.default.log("Alleged admin (\(allegedAdminId)) failed to admin override new member due to: didn't find the verification message.", bot: bot)
+						break
+					}
+					let chatId = message.chat.id
+					let admins = try bot.getChatAdministrators(ofChatWithId: chatId)
+					if admins.contains(where: { $0.user.id == allegedAdminId }) {
+						let mysql = try mysql()
+						let adminId = allegedAdminId
+						let result = try mysql.query(
+							"SELECT * FROM PendingMember WHERE verificationMessageId = ?;",
+							[MySQLData(int: message.messageId)]).wait()
+						if let row = result.first,
+						   let id = row.column("id")?.int,
+						   let verificationMessageId = row.column("verificationMessageId")?.int,
+						   let newMemberMessageId = row.column("newMemberMessageId")?.int {
+							do {
+								try bot.deleteMessage(inChat: chatId, messageId: verificationMessageId)
+								try bot.deleteMessage(inChat: chatId, messageId: newMemberMessageId)
+							} catch let error {
+								Logger.default.log("Failed to delete unverified member's verification/join message due to: \(error)", bot: bot)
+							}
+							_ = try mysql.query(
+								"DELETE FROM PendingMember WHERE verificationMessageId = ?;",
+								[MySQLData(int: message.messageId)]).wait()
+							try bot.kickChatMember(chatId: chatId, userId: id, untilDate: Date().addingTimeInterval(120))
+							Logger.default.log("Admin (\(adminId)) overriding new member: \(id) from \(chatId)", bot: bot)
+							try bot.answerCallbackQuery(callbackQueryId: callbackQuery.id, text: String.newMemberAdminOverrideSuccess)
+						} else {
+							Logger.default.log("Admin (\(adminId)) failed to admin override a new member from \(chatId) due to: didn't find the pending member.", bot: bot)
+						}
+					} else {
+						do {
+							try bot.answerCallbackQuery(callbackQueryId: callbackQuery.id, text: String.newMemberAdminOverrideWarning)
+						} catch {
+							Logger.default.log("Failed to send admin override new member warning due to: \(error)", bot: bot)
+						}
+					}
+				} catch let error {
+					Logger.default.log("Failed to admin override new member due to: \(error)", bot: bot)
+				}
 			default:
 				break
 			}
 		default:
 			break
 		}
+		}
 	}
+
 } catch let error {
 	Logger.default.log("Exit due to: \(error)", bot: bot)
 }
