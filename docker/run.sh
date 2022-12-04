@@ -6,6 +6,6 @@ docker run \
 --network GoldenArches \
 -v `pwd`:/cocoarobot \
 -w /cocoarobot \
-shaneqi/cocoarobot:latest \
+swift:5.7 \
 /bin/bash -c \
 "swift run"

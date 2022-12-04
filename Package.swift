@@ -1,18 +1,25 @@
-// swift-tools-version:4.2
+// swift-tools-version:5.7
 
 import PackageDescription
 
 let package = Package(
     name: "cocoarobot",
+    platforms: [
+        .macOS(.v10_15)
+    ],
 	products: [
 		.executable(name: "cocoarobot", targets: ["cocoarobot"])
 	],
 	dependencies: [
-		.package(url: "https://github.com/shaneqi/ZEGBot.git", .branch("cocoarobot")),
-		.package(url: "https://github.com/PerfectlySoft/Perfect-MySQL.git", from: Version(3, 0, 0))
+		.package(url: "https://github.com/shaneqi/ZEGBot.git", from: "4.2.7"),
+        .package(url: "https://github.com/vapor/mysql-nio.git", from: "1.0.0")
 	],
 	targets: [
-		.target(name: "cocoarobot", dependencies: ["ZEGBot", "PerfectMySQL"], path: "./Sources")
+        .executableTarget(name: "cocoarobot", dependencies: [
+            .product(name: "ZEGBot", package: "ZEGBot"),
+            .product(name: "MySQLNIO", package: "mysql-nio")
+        ], path: "./Sources"),
+        
 	],
-	swiftLanguageVersions: [.v4_2]
+	swiftLanguageVersions: [.v5]
 )
