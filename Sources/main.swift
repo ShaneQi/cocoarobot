@@ -16,10 +16,10 @@ let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
 func mysql() throws -> MySQLConnection {
 	let eventLoop = eventLoopGroup.next()
 	let conn = try MySQLConnection.connect(
-		to: .makeAddressResolvingHost("my.mysql.server", port: 5432),
-		username: "test_username",
-		database: "test_database",
-		password: "test_password",
+		to: .makeAddressResolvingHost(dbHost, port: dbPort),
+		username: dbUser,
+		database: dbName,
+		password: dbPassword,
 		on: eventLoop
 	).wait()
 	return conn
