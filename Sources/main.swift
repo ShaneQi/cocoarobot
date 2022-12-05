@@ -15,12 +15,15 @@ let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
 
 func mysqlConnection() throws -> MySQLConnection {
 	let eventLoop = eventLoopGroup.next()
+	var tls = TLSConfiguration.makeClientConfiguration()
+	tls.certificateVerification = .none
 	let conn = try MySQLConnection.connect(
-		to: .init(ipAddress: "0.0.0.0", port: 3306),
+//		to: .init(ipAddress: "0.0.0.0", port: 3306),
+		to: .makeAddressResolvingHost(dbHost, port: dbPort),
 		username: dbUser,
 		database: dbName,
 		password: dbPassword,
-		tlsConfiguration: .forClient(certificateVerification: .none),
+		tlsConfiguration: tls,
 		on: eventLoop
 	).wait()
 	return conn
@@ -52,10 +55,12 @@ do {
 
 			if let senderId = message.from?.id {
 				do {
+print("sql")
 					let mysql = try mysqlConnection()
 					defer {
 						try? mysql.close().wait()
 					}
+print("result")
 					let result = try mysql.query(
 						"SELECT * FROM PendingMember WHERE id = ?;",
 						[MySQLData(int: senderId)]).wait()
